@@ -53,4 +53,4 @@ def run_tournament(p1_class: Type[CribbagePlayer], p2_class: Type[CribbagePlayer
 if __name__ == "__main__":
     from .bots.random_bot import RandomBot
     from .bots.greedy_bot import GreedyBot
-    run_tournament(RandomBot, GreedyBot, num_games=1, verbose=True)
+    run_tournament(RandomBot, GreedyBot, num_games=10, verbose=False)
