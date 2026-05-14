@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.jorenjackson.docsortbot</string>
+    <key>ProgramArguments</key>
+    <array>
+        <!-- Absolute path to the virtual environment python executable running docsortbot -->
+        <string>/Users/jorenjackson/Projects/Fumbling Around/DocSortBot/.venv/bin/docsortbot</string>
+        <!-- You can uncomment and edit the lines below to specify a custom folder path -->
+        <!-- <string>--path</string> -->
+        <!-- <string>/Users/jorenjackson/Statements</string> -->
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <!-- Wait 10 seconds before restarting if the process exits -->
+    <key>ThrottleInterval</key>
+    <integer>10</integer>
+    <!-- Log files for debugging the background service -->
+    <key>StandardOutPath</key>
+    <string>/tmp/docsortbot.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/docsortbot.err</string>
+</dict>
+</plist>
