@@ -78,13 +78,35 @@ async def start_tournament(req: TournamentRequest):
     # (Especially important since it will block waiting on Queues for RemoteBots)
     
     def _run():
-        engine = GameEngine(p1, p2)
-        winner, log = engine.play_game() # For simplicity, API just runs 1 game right now
+        all_logs = []
+        wins = {req.p1_id: 0, req.p2_id: 0}
+        skunks = {req.p1_id: 0, req.p2_id: 0}
+        final_scores = {req.p1_id: 0, req.p2_id: 0}
+        last_score = {}
+        winner = None
+
+        for i in range(req.num_games):
+            # Alternate who deals to keep things fair
+            first, second = (p1, p2) if i % 2 == 0 else (p2, p1)
+            engine = GameEngine(first, second)
+            winner, log = engine.play_game()
+            wins[winner] = wins.get(winner, 0) + 1
+            if engine.skunk:
+                skunks[winner] = skunks.get(winner, 0) + 1
+            for pid, pts in engine.state.scores.items():
+                final_scores[pid] = final_scores.get(pid, 0) + pts
+            last_score = engine.state.scores
+            all_logs.append({"game": i + 1, "winner": winner, "log": log})
+
         return {
-            "winner": winner,
-            "skunk": engine.skunk,
-            "final_score": engine.state.scores,
-            "log": log
+            "winner": max(wins, key=wins.get),
+            "wins": wins,
+            "skunks": skunks,
+            "skunk": engine.skunk if req.num_games == 1 else False,
+            "final_score": last_score,
+            "total_score": final_scores,
+            "games": all_logs if req.num_games == 1 else [],
+            "log": all_logs[0]["log"] if req.num_games == 1 else [],
         }
         
     result = await asyncio.to_thread(_run)
