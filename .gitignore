@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+.venv/
+.pytest_cache/
+*.pyc
+*.egg-info/
+dist/
+build/
+
+# Node
+node_modules/
+frontend/dist/
+.env
+
+# macOS
+.DS_Store
+
+# IDEs
+.vscode/
+.idea/
+.antigravity/
