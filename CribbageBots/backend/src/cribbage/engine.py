@@ -53,6 +53,9 @@ class GameEngine:
         p1_id, p2_id = list(self.players.keys())
         self.state.scores = {p1_id: 0, p2_id: 0}
 
+        for player in self.players.values():
+            player.reset()
+
         self.log_event("game_start", message=f"Game started between {p1_id} and {p2_id}")
 
         while not self.winner:
@@ -67,11 +70,11 @@ class GameEngine:
                 break
             except Exception as e:
                 # Catch-all for unexpected internal engine errors
-                # In this case, we default to the non-dealer as a safety fallback
-                self.winner = self.state.non_dealer_id
-                self.end_reason = f"Internal Error: {str(e)}"
+                # We do NOT award a win on system errors to prevent bots from winning via crashes
+                self.winner = None
+                self.end_reason = f"System Error: {str(e)}"
                 self.log_event("forfeit", None, f"Unexpected internal error: {e}")
-                break
+                return None, self.game_log
 
             # Switch dealer
             self.state.dealer_id, self.state.non_dealer_id = self.state.non_dealer_id, self.state.dealer_id
@@ -110,7 +113,7 @@ class GameEngine:
             # Pass a copy of the hand to prevent bots from mutating engine state
             discards = self.players[pid].discard(list(hands[pid]), is_dealer=(pid == dealer))
             
-            if not all(c in hands[pid] for c in discards) or len(discards) != 2 or len(set(discards)) != 2:
+            if not all(any(c is h for h in hands[pid]) for c in discards) or len(discards) != 2 or len(set(discards)) != 2:
                 raise IllegalMoveError(pid, f"Invalid discard: {discards}")
             
             self.state.crib.extend(discards)
@@ -238,7 +241,7 @@ class GameEngine:
                 self.log_event("peg_go", current_player, f"{current_player} says Go.")
                 current_player = other(current_player)
             else:
-                if played_card not in legal_moves:
+                if not any(played_card is m for m in legal_moves):
                     raise IllegalMoveError(
                         current_player,
                         f"Played {played_card} (count {self.state.current_count} + {played_card.value} = {self.state.current_count + played_card.value} > 31)"

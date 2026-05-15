@@ -21,3 +21,10 @@ class CribbagePlayer(ABC):
         Must return a Card object currently in `hand` that keeps count <= 31.
         """
         pass
+
+    def reset(self):
+        """
+        Perform any necessary cleanup or state reset before a new game starts.
+        Optional for bot implementations.
+        """
+        pass

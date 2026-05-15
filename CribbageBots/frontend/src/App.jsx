@@ -289,6 +289,12 @@ export default function App() {
         </>
       ) : result ? (
         <>
+          {result?.integrity_violated && (
+            <div className="glass-panel error-banner" style={{ margin: '1rem 0', background: '#991b1b', border: '2px solid #ef4444' }}>
+              <h3>⚠️ Security Integrity Violation</h3>
+              <p>The core engine source code was modified while this tournament was running. <strong>Results may be compromised or untrustworthy.</strong></p>
+            </div>
+          )}
           {result?.games && result.games.length === 0 ? (
             <section aria-label="Bulk match results" className="glass-panel summary-section" style={{ marginTop: '2rem' }}>
               <h2>Tournament Summary Dashboard {loading && <Spinner />}</h2>

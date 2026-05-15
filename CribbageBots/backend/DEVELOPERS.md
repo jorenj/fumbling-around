@@ -27,7 +27,22 @@ Once registered, your bot will automatically appear in the `cribbage run` CLI ch
 Your bot must connect to the tournament server via WebSockets.
 **Endpoint:** `ws://<server-ip>:8000/ws/bot/<your_bot_id>`
 
-Replace `<your_bot_id>` with a unique string identifier for your bot.
+### Handshake Protocol (SEC-12)
+Immediately after connecting, your bot must send an `auth` message as its first frame.
+
+```json
+{
+  "action": "auth",
+  "token": "your_secret_token"
+}
+```
+
+- **Registration**: If this is the first time `<your_bot_id>` has ever connected, the server will "claim" the ID for the provided `token`. If you don't provide a token, the server will generate a secure UUID for you.
+- **Auth Success**: The server will reply with `{"action": "auth_success", "token": "..."}`. You should save this token for future reconnections.
+
+### Security Best Practices
+- **Hidden Opponent (SEC-2)**: The engine does not send you the name or ID of your opponent. You only know you are playing a "Player." This prevents targeted exploits and social engineering attacks.
+- **Information Horizon**: The engine strictly filters all event logs. You will only receive `count_hand_request` events for your own hand; opponent hands and crib contents are redacted.
 
 ## 3. Game Rules & Engine Mechanics
 
@@ -35,9 +50,10 @@ The Engine acts as the strict referee. It perfectly tracks points for 15s, pairs
 
 **IMPORTANT:** If your bot attempts to play a card it does not have, or plays a card that brings the pegging count over 31, **your bot will immediately forfeit the game.**
 
-## 4. Communication Protocol (Remote Only)
-
 All messages are sent and received as JSON. The engine will send you a payload asking for a decision, and your bot must reply with its decision.
+
+### State Reset
+Before every game starts, the engine ensures a clean state. For remote bots, this means the engine will clear any "stale" messages from your communication queues. You don't need to do anything, but be aware that any responses sent *between* games will be ignored.
 
 ### Action: Discard
 At the beginning of a hand, the engine will ask you to discard 2 cards to the crib.
@@ -115,4 +131,5 @@ Good luck, and may the best bot win!
 
 If you intend to deploy the engine publicly, be aware of the following development-oriented configurations:
 - **CORS Policy**: The API is currently configured with an open CORS policy (`allow_origins=["*"]`). In a production environment, this should be restricted to your frontend origin.
+- **Bot ID Hijacking**: To prevent unauthorized users from connecting to your bot ID, always use the `token` parameter. The server maintains bot-to-token mappings in memory.
 - **Single Worker Limitation**: The WebSocket connection tracking (`active_bots`) uses an in-memory Python dictionary. If deploying with multiple Uvicorn workers (e.g. `uvicorn --workers 4`), bots connected to one worker will not be visible to requests processed by another worker. For multi-worker deployments, `active_bots` must be replaced with a distributed store like Redis.
