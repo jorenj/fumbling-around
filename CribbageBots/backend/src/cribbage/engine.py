@@ -1,41 +1,53 @@
+import threading
 from typing import Dict, List, Tuple
 from .models import Card, Deck, GameState, Phase, Rank
 from .rules import get_legal_pegging_moves, score_hand, score_pegging
 from .bot import CribbagePlayer
-
-
-class IllegalMoveError(Exception):
-    def __init__(self, player_id: str, message: str):
-        self.player_id = player_id
-        super().__init__(f"{player_id}: {message}")
+from .exceptions import IllegalMoveError, TimeoutError
 
 
 class GameEngine:
-    def __init__(self, p1: CribbagePlayer, p2: CribbagePlayer):
+    def __init__(self, p1: CribbagePlayer, p2: CribbagePlayer, verbose: bool = True, on_event=None, manual_count: bool = False):
         self.players = {p1.player_id: p1, p2.player_id: p2}
-        self.state = GameState(dealer_id=p1.player_id, non_dealer_id=p2.player_id)
         self.deck = Deck()
-        self.game_log = []
+        self.state = GameState(dealer_id=p1.player_id, non_dealer_id=p2.player_id)
+        self.verbose = verbose
+        self.on_event = on_event
+        self.manual_count = manual_count
+        self.count_resume_event = threading.Event()
         self.winner = None
+        self.end_reason = "Natural" # Default reason
         self.skunk = False
+        self.game_log = []
+        self.event_counter = 0
 
     def log_event(self, event_type: str, player_id: str = None, message: str = "", data: dict = None):
         event = {
+            "id": self.event_counter,
             "type": event_type,
             "player_id": player_id,
             "message": message,
             "data": data or {},
             "p1_score": self.state.scores.get(list(self.players.keys())[0], 0),
-            "p2_score": self.state.scores.get(list(self.players.keys())[1], 0)
+            "p2_score": self.state.scores.get(list(self.players.keys())[1], 0),
+            "cut_card": str(self.state.cut_card) if self.state.cut_card else None,
+            "current_count": self.state.current_count,
+            "pegged_cards": [{"player_id": p["player_id"], "card": str(p["card"])} for p in self.state.pegged_cards]
         }
-        self.game_log.append(event)
+        if self.verbose:
+            self.game_log.append(event)
+        if self.on_event:
+            self.on_event(event)
+        self.event_counter += 1
 
     def award_points(self, player_id: str, points: int, reason: str):
         if points > 0:
             self.state.add_score(player_id, points)
+            score = self.state.scores[player_id]
             self.log_event("score", player_id, f"Scored {points} for {reason}", {"points": points, "reason": reason})
             if self.state.scores[player_id] >= 121 and not self.winner:
                 self.winner = player_id
+                self.end_reason = "reached 121 points"
 
     def play_game(self) -> Tuple[str, List[dict]]:
         p1_id, p2_id = list(self.players.keys())
@@ -46,17 +58,19 @@ class GameEngine:
         while not self.winner:
             try:
                 self.play_round()
-            except IllegalMoveError as e:
-                # Use the structured player_id from the exception directly — no hacky string splitting
+            except (IllegalMoveError, TimeoutError) as e:
+                # Correctly identify the offender and award the win to the opponent
                 offender = e.player_id
                 self.winner = p1_id if offender == p2_id else p2_id
-                self.log_event("forfeit", offender, f"{offender} forfeited: {e}")
+                self.end_reason = f"Forfeit: {e.message}"
+                self.log_event("forfeit", offender, f"{offender} forfeited: {e.message}")
                 break
-            except (ValueError, Exception) as e:
-                # Catch unhandled errors from RemoteBots (ValueError) and others,
-                # treat as a forfeit by the last active player (fallback to p1 wins).
-                self.winner = p1_id
-                self.log_event("forfeit", None, f"Unexpected error during game: {e}")
+            except Exception as e:
+                # Catch-all for unexpected internal engine errors
+                # In this case, we default to the non-dealer as a safety fallback
+                self.winner = self.state.non_dealer_id
+                self.end_reason = f"Internal Error: {str(e)}"
+                self.log_event("forfeit", None, f"Unexpected internal error: {e}")
                 break
 
             # Switch dealer
@@ -74,35 +88,34 @@ class GameEngine:
         self.deck.reset()
         self.state.crib = []
         self.state.peg_history = []
+        self.state.pegged_cards = []
         self.state.current_count = 0
+        self.state.cut_card = None
 
         dealer = self.state.dealer_id
         non_dealer = self.state.non_dealer_id
 
         # 1. Deal
         self.state.phase = Phase.DEAL
-        hands = {
-            non_dealer: self.deck.deal(6),
-            dealer: self.deck.deal(6)
-        }
-        self.log_event("deal", message=f"Dealt 6 cards each. {dealer} is dealer.")
+        hands = {non_dealer: [], dealer: []}
+        for _ in range(6):
+            hands[non_dealer].extend(self.deck.deal(1))
+            hands[dealer].extend(self.deck.deal(1))
 
-        # 2. Discard
+        self.log_event("deal", None, "Dealt 6 cards to each player")
+
+        # 2. Discard to crib
         self.state.phase = Phase.DISCARD
         for pid in [non_dealer, dealer]:
-            bot = self.players[pid]
-            discards = bot.discard(hands[pid].copy(), is_dealer=(pid == dealer))
-
-            # Validate discards — must be exactly 2 distinct cards from the hand
-            if (len(discards) != 2
-                    or discards[0] not in hands[pid]
-                    or discards[1] not in hands[pid]
-                    or discards[0] == discards[1]):
-                raise IllegalMoveError(pid, f"Invalid discard {discards}")
-
-            hands[pid].remove(discards[0])
-            hands[pid].remove(discards[1])
+            # Pass a copy of the hand to prevent bots from mutating engine state
+            discards = self.players[pid].discard(list(hands[pid]), is_dealer=(pid == dealer))
+            
+            if not all(c in hands[pid] for c in discards) or len(discards) != 2 or len(set(discards)) != 2:
+                raise IllegalMoveError(pid, f"Invalid discard: {discards}")
+            
             self.state.crib.extend(discards)
+            for card in discards:
+                hands[pid].remove(card)
             self.log_event("discard", pid, f"{pid} discarded 2 cards.")
 
         # 3. Cut
@@ -126,22 +139,43 @@ class GameEngine:
         self.state.phase = Phase.COUNTING
 
         # Non-dealer hand first
-        pts, breakdown = score_hand(hands[non_dealer], self.state.cut_card, is_crib=False)
-        self.award_points(non_dealer, pts, f"Hand ({breakdown})")
+        pts_nd, bd_nd = score_hand(hands[non_dealer], self.state.cut_card, is_crib=False)
+        if self.manual_count:
+            self.log_event("count_hand_request", non_dealer, 
+                           message=f"Count {non_dealer}'s hand",
+                           data={"hand": [str(c) for c in hands[non_dealer]], "is_crib": False, "points": pts_nd, "breakdown": bd_nd})
+            self.count_resume_event.wait()
+            self.count_resume_event.clear()
+
+        self.award_points(non_dealer, pts_nd, f"Hand ({bd_nd})")
         if self.winner:
             return
 
-        # Dealer hand
-        pts, breakdown = score_hand(hands[dealer], self.state.cut_card, is_crib=False)
-        self.award_points(dealer, pts, f"Hand ({breakdown})")
+        # Dealer hand second
+        pts_d, bd_d = score_hand(hands[dealer], self.state.cut_card, is_crib=False)
+        if self.manual_count:
+            self.log_event("count_hand_request", dealer, 
+                           message=f"Count {dealer}'s hand",
+                           data={"hand": [str(c) for c in hands[dealer]], "is_crib": False, "points": pts_d, "breakdown": bd_d})
+            self.count_resume_event.wait()
+            self.count_resume_event.clear()
+
+        self.award_points(dealer, pts_d, f"Hand ({bd_d})")
         if self.winner:
             return
 
-        # Crib (always goes to dealer)
-        pts, breakdown = score_hand(self.state.crib, self.state.cut_card, is_crib=True)
-        self.award_points(dealer, pts, f"Crib ({breakdown})")
+        # Crib last (dealer scores)
+        pts_c, bd_c = score_hand(self.state.crib, self.state.cut_card, is_crib=True)
+        if self.manual_count:
+            self.log_event("count_hand_request", dealer, 
+                           message=f"Count the crib",
+                           data={"hand": [str(c) for c in self.state.crib], "is_crib": True, "points": pts_c, "breakdown": bd_c})
+            self.count_resume_event.wait()
+            self.count_resume_event.clear()
 
-    def run_pegging_phase(self, hands: Dict[str, List[Card]], non_dealer: str, dealer: str):
+        self.award_points(dealer, pts_c, f"Crib ({bd_c})")
+
+    def run_pegging_phase(self, hands: Dict[str, List[Card]], non_dealer: str, dealer: str, max_iterations: int = None):
         def other(pid: str) -> str:
             """Always return the correct opponent — no stale variable issues."""
             return dealer if pid == non_dealer else non_dealer
@@ -170,7 +204,8 @@ class GameEngine:
                 just_hit_31 = False
                 passed.clear()
                 # The player who did NOT play last starts the new sequence
-                next_player = other(last_to_play) if last_to_play else non_dealer
+                # Fallback if last_to_play is None (e.g. both pass immediately): use non_dealer
+                next_player = other(last_to_play) if last_to_play is not None else non_dealer
                 # If that player has no cards either, the other one must go
                 if not hands[next_player]:
                     next_player = other(next_player)
@@ -181,6 +216,11 @@ class GameEngine:
             if not hands[current_player] or current_player in passed:
                 current_player = other(current_player)
                 continue
+
+            if max_iterations is not None:
+                max_iterations -= 1
+                if max_iterations < 0:
+                    return
 
             bot = self.players[current_player]
             legal_moves = get_legal_pegging_moves(hands[current_player], self.state.current_count)
@@ -207,6 +247,7 @@ class GameEngine:
                 hands[current_player].remove(played_card)
                 self.state.current_count += played_card.value
                 self.state.peg_history.append(played_card)
+                self.state.pegged_cards.append({"player_id": current_player, "card": played_card})
                 last_to_play = current_player
                 just_hit_31 = False
 

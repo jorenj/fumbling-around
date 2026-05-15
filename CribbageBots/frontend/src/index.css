@@ -365,3 +365,54 @@ body {
     padding-top: 0;
   }
 }
+
+/* ─── Pegboard ─── */
+.pegboard-container {
+  margin-bottom: 2rem;
+  overflow: hidden;
+}
+
+.pegboard-svg-wrapper {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-subtle) transparent;
+}
+
+.pegboard-svg-wrapper::-webkit-scrollbar {
+  height: 6px;
+}
+
+.pegboard-svg-wrapper::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: 10px;
+}
+
+/* ─── Human Interface Buttons ─── */
+.btn {
+  background: var(--accent-blue);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-weight: 600;
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.card-btn {
+  transition: transform 0.2s, opacity 0.2s;
+  user-select: none;
+}
+.card-btn:hover:not(:disabled) {
+  transform: translateY(-5px);
+}
+.card-btn.selected {
+  border-color: var(--accent-blue) !important;
+  box-shadow: 0 0 15px var(--accent-glow);
+}
+.card-btn.dragging {
+  cursor: grabbing;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+  z-index: 10;
+}

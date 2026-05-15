@@ -10,17 +10,21 @@ import time
 import sys
 import os
 
-# Allow running directly without pytest
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+try:
+    import pytest
+    slow_marker = pytest.mark.slow
+except ImportError:
+    # Dummy decorator if pytest is not available
+    def slow_marker(func): return func
 
-from src.cribbage.models import Card, Rank, Suit
-from src.cribbage.rules import (
+from cribbage.models import Card, Rank, Suit
+from cribbage.rules import (
     get_legal_pegging_moves, score_15s, score_pairs, score_runs,
     score_flush, score_nobs, score_hand, score_pegging
 )
-from src.cribbage.engine import GameEngine
-from src.cribbage.bots.random_bot import RandomBot
-from src.cribbage.bots.greedy_bot import GreedyBot
+from cribbage.engine import GameEngine
+from cribbage.bots.random_bot import RandomBot
+from cribbage.bots.greedy_bot import GreedyBot
 
 
 # ---------------------------------------------------------------------------
@@ -168,7 +172,7 @@ def test_legal_moves_excludes_over_31():
 def test_single_game_completes():
     p1 = RandomBot("RandomBot")
     p2 = GreedyBot("GreedyBot")
-    engine = GameEngine(p1, p2)
+    engine = GameEngine(p1, p2, verbose=True)
     winner, log = engine.play_game()
     assert winner in ("RandomBot", "GreedyBot"), f"Unexpected winner: {winner}"
     assert len(log) > 0
@@ -177,7 +181,7 @@ def test_single_game_completes():
 def test_winner_has_121_or_forfeit():
     p1 = RandomBot("RandomBot")
     p2 = GreedyBot("GreedyBot")
-    engine = GameEngine(p1, p2)
+    engine = GameEngine(p1, p2, verbose=True)
     winner, log = engine.play_game()
     winner_score = engine.state.scores.get(winner, 0)
     final_event = log[-1]
@@ -207,6 +211,7 @@ def benchmark_100_games(time_limit_seconds: float = 120.0) -> float:
     return elapsed
 
 
+@slow_marker
 def test_100_games_within_time_limit():
     elapsed = benchmark_100_games(time_limit_seconds=120.0)
     print(f"\n  ✓ 100 games completed in {elapsed:.2f}s")

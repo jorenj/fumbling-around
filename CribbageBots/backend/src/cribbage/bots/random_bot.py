@@ -13,3 +13,6 @@ class RandomBot(CribbagePlayer):
         if not legal_moves:
             return None
         return random.choice(legal_moves)
+        
+    def count_hand(self, hand: List[Card], cut_card: Card, is_crib: bool) -> bool:
+        return True

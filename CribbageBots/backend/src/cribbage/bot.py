@@ -7,7 +7,7 @@ class CribbagePlayer(ABC):
         self.player_id = player_id
 
     @abstractmethod
-    def discard(self, hand: List[Card], is_dealer: bool) -> Tuple[Card, Card]:
+    def discard(self, hand: List[Card], is_dealer: bool) -> tuple:
         """
         Choose 2 cards to throw to the crib.
         Must return two Card objects that are currently in `hand`.

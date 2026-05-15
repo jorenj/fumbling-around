@@ -15,14 +15,13 @@ def score_15s(cards: List[Card]) -> int:
     Uses a compact subset-sum DP over card values instead of iterating
     all combinations explicitly, which is ~10x faster for 5-card hands.
     """
-    # Count how many subsets sum to 15 using a value-frequency table.
     # dp[s] = number of subsets whose values sum to s.
-    dp = [0] * 32  # max possible sum: 4 x 10 = 40, but we only care about <= 31
+    dp = [0] * 16  # indices 0–15; we only care about subsets summing to exactly 15
     dp[0] = 1
     for card in cards:
         v = card.value
         # Iterate backwards to avoid using the same card twice
-        for s in range(min(31, 15 + v), v - 1, -1):
+        for s in range(15, v - 1, -1):
             dp[s] += dp[s - v]
     return dp[15] * 2
 
@@ -41,6 +40,8 @@ def score_runs(cards: List[Card]) -> int:
     distinct_ranks = sorted(list(counts.keys()))
     
     max_run_length = 0
+    # multiplier logic: we multiply by the count of each rank 
+    # to account for duplicated runs (e.g. [3,3,4,5] is two runs of 3-4-5)
     run_combinations = 1
     
     # Find longest run
@@ -126,6 +127,12 @@ def score_pegging(play_history: List[Card]) -> Tuple[int, str]:
         
     score = 0
     breakdowns = []
+    
+    # Note: A single card can simultaneously score multiple point types.
+    # For example, playing a 5 onto a count of 26 makes the count 31,
+    # which can also form a pair if the previous card was a 5.
+    # The structure below ensures 15 and 31 are mutually exclusive (via elif),
+    # but pairs and runs are checked independently so their scores accumulate.
     
     # 15 or 31
     current_count = sum(c.value for c in play_history)

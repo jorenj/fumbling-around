@@ -7,7 +7,7 @@ name = "cribbage-engine"
 version = "0.1.0"
 description = "Cribbage tournament engine and API"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.9"
 dependencies = [
     "fastapi",
     "uvicorn",
@@ -21,3 +21,9 @@ dev = [
     "black",
     "flake8"
 ]
+
+[project.scripts]
+cribbage = "cribbage.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/cribbage"]

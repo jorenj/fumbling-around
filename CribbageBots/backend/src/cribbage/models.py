@@ -52,10 +52,12 @@ class Card:
 
 class Deck:
     def __init__(self):
-        self.cards: List[Card] = [Card(rank=r, suit=s) for r in Rank for s in Suit]
+        self._rng = random.SystemRandom()
+        self.cards: List[Card] = []
+        self.reset()
         
     def shuffle(self):
-        random.shuffle(self.cards)
+        self._rng.shuffle(self.cards)
         
     def deal(self, n: int) -> List[Card]:
         if n > len(self.cards):
@@ -87,6 +89,7 @@ class GameState:
     # Pegging state
     current_count: int = 0
     peg_history: List[Card] = field(default_factory=list)
+    pegged_cards: List[dict] = field(default_factory=list) # List of {"player_id": str, "card": Card}
     
     # Hand/Crib state (only visible to engine, bots get their own hands)
     crib: List[Card] = field(default_factory=list)

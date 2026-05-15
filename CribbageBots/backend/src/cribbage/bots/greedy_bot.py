@@ -88,3 +88,6 @@ class GreedyBot(CribbagePlayer):
                     best_card = card
 
         return best_card
+        
+    def count_hand(self, hand: List[Card], cut_card: Card, is_crib: bool) -> bool:
+        return True
