@@ -743,15 +743,15 @@ export default function App() {
               <div style={{ display: 'flex', gap: '15px', marginTop: '10px', fontSize: '0.75rem', justifyContent: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                   <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#14b8a6' }}></div>
-                  <span>Active (&lt;5m)</span>
+                  <span>Active (&lt;2m)</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                   <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#f59e0b' }}></div>
-                  <span>Delayed (&lt;15m)</span>
+                  <span>Delayed (&lt;5m)</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                   <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#94a3b8' }}></div>
-                  <span>Stale (&gt;15m)</span>
+                  <span>Stale (&gt;5m)</span>
                 </div>
               </div>
             </div>
@@ -879,13 +879,10 @@ export default function App() {
 
         {activeTab === 'checkin' && (
           <div>
+            {/* Identity Card */}
             <div className="card">
-              <h3 className="section-title">📡 Location Broadcast (GPS)</h3>
-              <p className="subtext" style={{ marginBottom: '1rem' }}>
-                Turn this on when it is your turn to race or support. Keep this browser page open in your pocket so teammates can track your live position.
-              </p>
-
-              <div className="form-group">
+              <h3 className="section-title">👤 Select Identity</h3>
+              <div className="form-group" style={{ marginTop: '0.5rem' }}>
                 <label className="form-label">Identify As:</label>
                 <select 
                   value={activeCheckinUser} 
@@ -902,8 +899,52 @@ export default function App() {
                   <option value="CAR_C">🚙 Car C (Support)</option>
                 </select>
               </div>
+            </div>
 
-              <div style={{ margin: '1.5rem 0 1rem' }}>
+            {/* Option 1: Background GPS (Recommended) */}
+            <div className="card" style={{ 
+              border: '1px solid rgba(20, 184, 166, 0.35)', 
+              background: 'linear-gradient(135deg, rgba(20, 184, 166, 0.08) 0%, rgba(6, 182, 212, 0.03) 100%)' 
+            }}>
+              <h3 className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#14b8a6' }}>
+                🔌 Option 1: Background GPS (Recommended)
+              </h3>
+              <p className="subtext" style={{ lineHeight: '1.4', marginBottom: '1rem', color: 'hsl(var(--text-primary))' }}>
+                Use the free <b>Overland GPS Tracker</b> app. It runs in the background and sends GPS updates even when your phone is locked in your pocket.
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <a 
+                  href={`overland://setup?url=${encodeURIComponent(window.location.origin + '/api/overland')}&device_id=${activeCheckinUser}`}
+                  className="btn-primary"
+                  style={{ 
+                    textDecoration: 'none', 
+                    textAlign: 'center', 
+                    background: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)', 
+                    boxShadow: '0 4px 15px rgba(6, 182, 212, 0.3)',
+                    display: 'block',
+                    padding: '0.75rem'
+                  }}
+                >
+                  📲 Auto-Configure Overland App
+                </a>
+                <p className="subtext" style={{ fontSize: '0.75rem', marginTop: '6px', lineHeight: '1.5' }}>
+                  1. Install <a href="https://apps.apple.com/us/app/overland-gps-tracker/id1452445362" target="_blank" rel="noopener noreferrer" style={{ color: '#06b6d4', textDecoration: 'underline', fontWeight: 'bold' }}>Overland GPS Tracker</a> from the iOS App Store.<br />
+                  2. Select your identity above.<br />
+                  3. Tap the button above to auto-configure the app.<br />
+                  4. <b>iOS Settings:</b> Go to Settings → Overland → Location → select <b>"Always Allow"</b> (enables background tracking. Note: you may need to choose/trigger location settings twice to prompt/unlock the "Always Allow" option).<br />
+                  5. <b>In Overland App:</b> On the <b>"Tracker"</b> page, set the <b>Send Interval</b> to <b>1m</b>, then toggle the tracking switch at the top to <b>ON</b>.
+                </p>
+              </div>
+            </div>
+            
+            {/* Option 2: Temporary Browser Broadcast */}
+            <div className="card" style={{ opacity: 0.85 }}>
+              <h3 className="section-title">🌐 Option 2: Temporary Browser Broadcast</h3>
+              <p className="subtext" style={{ marginBottom: '1rem', lineHeight: '1.4' }}>
+                <b>⚠️ Temporary Only:</b> Broadcasts GPS directly from this browser page. <b>Will stop working</b> as soon as you lock your screen, close this tab, or switch apps.
+              </p>
+
+              <div style={{ margin: '1rem 0' }}>
                 <button 
                   onClick={toggleLocationSharing} 
                   className="btn-primary"
@@ -938,45 +979,6 @@ export default function App() {
                   </>
                 )}
               </div>
-            </div>
-            
-            <div className="card">
-              <h3 className="section-title">🔌 Background GPS (Overland App)</h3>
-              <p className="subtext" style={{ lineHeight: '1.4', marginBottom: '1rem' }}>
-                For reliable background tracking while your phone is locked in your pocket, use the free <b>Overland</b> app.
-              </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <a 
-                  href={`overland://setup?url=${encodeURIComponent(window.location.origin + '/api/overland')}&device_id=${activeCheckinUser}`}
-                  className="btn-primary"
-                  style={{ 
-                    textDecoration: 'none', 
-                    textAlign: 'center', 
-                    background: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)', 
-                    boxShadow: '0 4px 15px rgba(6, 182, 212, 0.3)',
-                    display: 'block',
-                    padding: '0.75rem'
-                  }}
-                >
-                  📲 Auto-Configure Overland App
-                </a>
-                 <p className="subtext" style={{ fontSize: '0.75rem', marginTop: '4px', lineHeight: '1.5' }}>
-                  1. Install <b>Overland</b> from iOS App Store.<br />
-                  2. Select your identity above.<br />
-                  3. Tap button above to configure.<br />
-                  4. <b>iOS Settings:</b> Go to Settings → Overland → Location → select <b>"Always Allow"</b> (enables background tracking. Note: you may need to choose/trigger location settings twice to prompt/unlock the "Always Allow" option).<br />
-                  5. <b>In Overland App:</b> On the <b>"Tracker"</b> page, set the <b>Send Interval</b> to <b>1m</b>, then toggle the tracking switch at the top to <b>ON</b>.
-                </p>
-              </div>
-            </div>
-            
-            <div className="card">
-              <h3 className="section-title">📱 iOS Standalone Instructions</h3>
-              <p className="subtext" style={{ lineHeight: '1.4' }}>
-                To use this as an App, tap the <b>Share</b> button in Safari and select <b>Add to Home Screen</b>.
-                <br /><br />
-                <b>Important:</b> iOS Safari suspends GPS updates when the screen is locked or app is closed. Make sure to keep the phone screen active with the app open during your leg to ensure continuous tracking.
-              </p>
             </div>
           </div>
         )}
@@ -1150,11 +1152,11 @@ function LiveMap({ memberLocations }) {
 
       // Draw new live markers
       Object.entries(memberLocations).forEach(([name, loc]) => {
-        const timeDiffMins = Math.round((Date.now() - loc.timestamp) / 60000);
+        const timeDiffMins = Math.floor((Date.now() - loc.timestamp) / 60000);
         
-        let markerColor = '#94a3b8'; // stale > 15m (grey)
-        if (timeDiffMins < 5) markerColor = '#14b8a6'; // active < 5m (teal)
-        else if (timeDiffMins < 15) markerColor = '#f59e0b'; // warning < 15m (amber)
+        let markerColor = '#94a3b8'; // stale >= 5m (grey)
+        if (timeDiffMins < 2) markerColor = '#14b8a6'; // active < 2m (teal)
+        else if (timeDiffMins < 5) markerColor = '#f59e0b'; // warning < 5m (amber)
 
         const customIcon = L.divIcon({
           className: 'custom-live-marker',
