@@ -621,7 +621,7 @@ export default function App() {
                               {t.name}
                             </div>
                             {/* Show actual API team name if different (e.g. in 2024 test mode) */}
-                            {t.TeamName && t.TeamName !== t.name && (
+                            {t.TeamName && t.TeamName.toLowerCase() !== t.name.toLowerCase() && (
                               <div className="subtext" style={{ fontSize: '0.7rem', fontStyle: 'italic' }}>
                                 2024 BIB: {t.TeamName}
                               </div>
@@ -1039,7 +1039,7 @@ function CompetitorSplits({ team, year }) {
             BIB {team.bib} — {team.name}
           </div>
           {/* In test years, also show the actual team name from API */}
-          {team.TeamName && team.TeamName !== team.name && (
+          {team.TeamName && team.TeamName.toLowerCase() !== team.name.toLowerCase() && (
             <div className="subtext" style={{ fontSize: '0.7rem', fontStyle: 'italic' }}>
               {year} BIB: {team.TeamName}
             </div>
