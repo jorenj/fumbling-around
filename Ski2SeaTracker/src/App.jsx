@@ -262,7 +262,9 @@ export default function App() {
   });
 
   // Location sharing state
-  const [activeCheckinUser, setActiveCheckinUser] = useState('IVER');
+  const [activeCheckinUser, setActiveCheckinUser] = useState(() => {
+    return localStorage.getItem('ski2sea_active_checkin_user') || 'IVER';
+  });
   const [isSharingLocation, setIsSharingLocation] = useState(false);
   const [gpsStatus, setGpsStatus] = useState('inactive');
   const [lastGpsCoords, setLastGpsCoords] = useState(null);
@@ -372,10 +374,21 @@ export default function App() {
     }
   };
 
-  // Save selected racer
+  // Save selected racer & sync to active check-in user if it's a team member
   useEffect(() => {
     localStorage.setItem('ski2sea_selected_racer', selectedRacerKey);
+    if (activeCheckinUser !== selectedRacerKey && LOGISTICS_DATA[selectedRacerKey]) {
+      setActiveCheckinUser(selectedRacerKey);
+    }
   }, [selectedRacerKey]);
+
+  // Save active check-in user & sync to selected racer if it's a team member
+  useEffect(() => {
+    localStorage.setItem('ski2sea_active_checkin_user', activeCheckinUser);
+    if (LOGISTICS_DATA[activeCheckinUser] && selectedRacerKey !== activeCheckinUser) {
+      setSelectedRacerKey(activeCheckinUser);
+    }
+  }, [activeCheckinUser]);
 
   // ─── Shared Checklist ─────────────────────────────────────────
   // Poll the server for latest checklist state
