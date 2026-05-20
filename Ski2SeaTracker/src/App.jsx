@@ -965,7 +965,7 @@ export default function App() {
                   2. Select your identity above.<br />
                   3. Tap button above to configure.<br />
                   4. <b>iOS Settings:</b> Go to Settings → Overland → Location → select <b>"Always Allow"</b> (enables background tracking. Note: you may need to choose/trigger location settings twice to prompt/unlock the "Always Allow" option).<br />
-                  5. <b>In Overland App:</b> Toggle the tracking switch at top to <b>ON</b>.
+                  5. <b>In Overland App:</b> In settings (gear icon), set <b>Send Interval</b> to <b>1m</b>, then toggle the tracking switch at the top to <b>ON</b>.
                 </p>
               </div>
             </div>
