@@ -947,10 +947,12 @@ export default function App() {
                 >
                   📲 Auto-Configure Overland App
                 </a>
-                <p className="subtext" style={{ fontSize: '0.75rem', textAlign: 'center', marginTop: '4px' }}>
+                 <p className="subtext" style={{ fontSize: '0.75rem', marginTop: '4px', lineHeight: '1.5' }}>
                   1. Install <b>Overland</b> from iOS App Store.<br />
-                  2. Choose your identity above.<br />
-                  3. Tap this button to configure and start tracking!
+                  2. Select your identity above.<br />
+                  3. Tap button above to configure.<br />
+                  4. <b>iOS Settings:</b> Go to Settings → Overland → Location → select <b>"Always Allow"</b> (enables background tracking. Note: you may need to choose/trigger location settings twice to prompt/unlock the "Always Allow" option).<br />
+                  5. <b>In Overland App:</b> Toggle the tracking switch at top to <b>ON</b>.
                 </p>
               </div>
             </div>
