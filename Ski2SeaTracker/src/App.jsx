@@ -290,6 +290,12 @@ export default function App() {
   const [teamsData, setTeamsData] = useState([]);
   const [loadingResults, setLoadingResults] = useState(false);
   const [lastRefreshed, setLastRefreshed] = useState(null);
+  const [events, setEvents] = useState([]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(`ski2sea_events_${year}`);
+    setEvents(saved ? JSON.parse(saved) : []);
+  }, [year]);
 
   // Logistics state
   const [selectedRacerKey, setSelectedRacerKey] = useState(() => {
@@ -419,6 +425,48 @@ export default function App() {
 
         // Combine targeted teams + top 2 family competitors
         const finalResults = [...targetedResults, ...topFamily];
+
+        // Event detection: compare against previously cached results
+        let prevResults = [];
+        const cachedResults = localStorage.getItem(`ski2sea_results_${year}`);
+        if (cachedResults) {
+          try {
+            prevResults = JSON.parse(cachedResults);
+          } catch (e) {}
+        }
+
+        if (prevResults && prevResults.length > 0) {
+          const newEvents = [];
+          finalResults.forEach(newTeam => {
+            const prevTeam = prevResults.find(pt => pt.bib === newTeam.bib);
+            if (prevTeam) {
+              LEGS_CONFIG.forEach(leg => {
+                const newVal = newTeam[leg.splitKey];
+                const prevVal = prevTeam[leg.splitKey];
+                const hasNewSplit = (newVal && newVal !== "0" && newVal !== "—" && newVal !== "") &&
+                                    (!prevVal || prevVal === "0" || prevVal === "—" || prevVal === "");
+                if (hasNewSplit) {
+                  newEvents.push({
+                    id: `${newTeam.bib}_${leg.id}_${Date.now()}`,
+                    bib: newTeam.bib,
+                    teamName: newTeam.name,
+                    legName: leg.name,
+                    split: newVal,
+                    timestamp: Date.now()
+                  });
+                }
+              });
+            }
+          });
+
+          if (newEvents.length > 0) {
+            setEvents(prev => {
+              const updated = [...newEvents, ...prev].slice(0, 3);
+              localStorage.setItem(`ski2sea_events_${year}`, JSON.stringify(updated));
+              return updated;
+            });
+          }
+        }
 
         setTeamsData(finalResults);
         setLastRefreshed(new Date());
@@ -725,6 +773,47 @@ export default function App() {
                 Sync Now
               </button>
             </div>
+
+            {/* Recent Activity Notifications */}
+            {events.length > 0 && (
+              <div className="card" style={{
+                background: 'linear-gradient(135deg, rgba(6,182,212,0.06) 0%, rgba(20,184,166,0.03) 100%)',
+                borderColor: 'rgba(6,182,212,0.25)',
+                padding: '0.65rem 0.85rem',
+                marginBottom: '0.75rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+                  <h4 style={{ margin: 0, fontSize: '0.75rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#06b6d4', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    🔔 Recent Updates
+                  </h4>
+                  <button 
+                    onClick={() => {
+                      setEvents([]);
+                      localStorage.removeItem(`ski2sea_events_${year}`);
+                    }}
+                    style={{ background: 'none', border: 'none', color: 'hsl(var(--text-muted))', fontSize: '0.65rem', cursor: 'pointer', textDecoration: 'underline' }}
+                  >
+                    Clear
+                  </button>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  {events.map(evt => (
+                    <div key={evt.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.78rem', padding: '2px 0', borderBottom: '1px solid hsl(var(--border) / 0.15)' }}>
+                      <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: '8px' }}>
+                        <span style={{ fontWeight: '600', color: '#14b8a6' }}>{evt.teamName}</span>
+                        <span style={{ color: 'hsl(var(--text-muted))' }}>: </span>
+                        <span>{evt.legName}</span>
+                        <span style={{ color: 'hsl(var(--text-muted))' }}> in </span>
+                        <span style={{ fontFamily: 'var(--font-title)', fontWeight: '600' }}>{evt.split}</span>
+                      </div>
+                      <span style={{ fontSize: '0.65rem', color: 'hsl(var(--text-muted))', whiteSpace: 'nowrap' }}>
+                        {new Date(evt.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' })}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Active Leg Card — 2026 only */}
             {year === '2026' && (() => {
