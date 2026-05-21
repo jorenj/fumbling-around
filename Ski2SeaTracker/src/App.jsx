@@ -161,10 +161,10 @@ const LOGISTICS_DATA = {
     name: "David Jackson",
     leg: "Kayak",
     briefing: "11:45am briefing @ Zuanich Point Park",
-    car: "Car C, then Car X",
+    car: "Car C",
     tasks: [
       "Drive Car C with Joren to Hovander Park in time for the 11:00am cyclocross briefing.",
-      "Leave Hovander Park early in Car X to get to the Kayak launch.",
+      "Leave Hovander Park early in Car C to get to the Kayak launch.",
       "Attend the 11:45am kayak briefing.",
       "Kayak super fast! (Leg 7)",
       "Beers at the finish line!"
@@ -179,7 +179,7 @@ const LOGISTICS_DATA = {
       "Drive in Car C with David to Hovander Park.",
       "Attend the 11:00am cyclocross briefing.",
       "Bike super fast! (Leg 6)",
-      "Drive Car C to the finish line."
+      "Drive Car C to the finish line with Sam"
     ]
   }
 };
