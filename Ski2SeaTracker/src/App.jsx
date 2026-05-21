@@ -10,13 +10,6 @@ const TARGET_TEAMS = [
   { bib: 32, name: "Daddy's Back, by Kenny Loggins" }
 ];
 
-// Race years config (API keys/ids moved to backend)
-const YEARS_CONFIG = {
-  "2026": { name: "2026 Live" },
-  "2025": { name: "2025 Results" },
-  "2024": { name: "2024 Test" }
-};
-
 // Race start: May 25, 2026 at 7:30am Pacific (PDT = UTC-7)
 const RACE_START = new Date('2026-05-25T07:30:00-07:00');
 
@@ -294,6 +287,7 @@ export default function App() {
 
   useEffect(() => {
     const saved = localStorage.getItem(`ski2sea_events_${year}`);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setEvents(saved ? JSON.parse(saved) : []);
   }, [year]);
 
@@ -315,6 +309,20 @@ export default function App() {
   const [lastGpsCoords, setLastGpsCoords] = useState(null);
   const [memberLocations, setMemberLocations] = useState({});
   const watchIdRef = useRef(null);
+
+  const handleSelectedRacerChange = (val) => {
+    setSelectedRacerKey(val);
+    if (activeCheckinUser !== val && LOGISTICS_DATA[val]) {
+      setActiveCheckinUser(val);
+    }
+  };
+
+  const handleActiveCheckinUserChange = (val) => {
+    setActiveCheckinUser(val);
+    if (LOGISTICS_DATA[val] && selectedRacerKey !== val) {
+      setSelectedRacerKey(val);
+    }
+  };
 
   // Countdown timer state (fires every second)
   const [now, setNow] = useState(() => new Date());
@@ -432,7 +440,9 @@ export default function App() {
         if (cachedResults) {
           try {
             prevResults = JSON.parse(cachedResults);
-          } catch (e) {}
+          } catch {
+            // Ignore
+          }
         }
 
         if (prevResults && prevResults.length > 0) {
@@ -485,20 +495,6 @@ export default function App() {
     }
   };
 
-  // Poll results and locations
-  useEffect(() => {
-    fetchResults();
-    fetchLocations();
-
-    const resultsInterval = setInterval(fetchResults, 30000);
-    const locationsInterval = setInterval(fetchLocations, 15000);
-
-    return () => {
-      clearInterval(resultsInterval);
-      clearInterval(locationsInterval);
-    };
-  }, [year]);
-
   // Fetch coordinates from local server
   const fetchLocations = async () => {
     try {
@@ -512,20 +508,30 @@ export default function App() {
     }
   };
 
+  // Poll results and locations
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchResults();
+    fetchLocations();
+
+    const resultsInterval = setInterval(fetchResults, 30000);
+    const locationsInterval = setInterval(fetchLocations, 15000);
+
+    return () => {
+      clearInterval(resultsInterval);
+      clearInterval(locationsInterval);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [year]);
+
   // Save selected racer & sync to active check-in user if it's a team member
   useEffect(() => {
     localStorage.setItem('ski2sea_selected_racer', selectedRacerKey);
-    if (activeCheckinUser !== selectedRacerKey && LOGISTICS_DATA[selectedRacerKey]) {
-      setActiveCheckinUser(selectedRacerKey);
-    }
   }, [selectedRacerKey]);
 
   // Save active check-in user & sync to selected racer if it's a team member
   useEffect(() => {
     localStorage.setItem('ski2sea_active_checkin_user', activeCheckinUser);
-    if (LOGISTICS_DATA[activeCheckinUser] && selectedRacerKey !== activeCheckinUser) {
-      setSelectedRacerKey(activeCheckinUser);
-    }
   }, [activeCheckinUser]);
 
   // ─── Shared Checklist ─────────────────────────────────────────
@@ -544,6 +550,7 @@ export default function App() {
 
   useEffect(() => {
     // Sync from server on mount and every 10 seconds
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchChecklist();
     const interval = setInterval(fetchChecklist, 10000);
     return () => clearInterval(interval);
@@ -1152,7 +1159,7 @@ export default function App() {
               <label className="form-label">Show Schedule For:</label>
               <select 
                 value={selectedRacerKey} 
-                onChange={(e) => setSelectedRacerKey(e.target.value)}
+                onChange={(e) => handleSelectedRacerChange(e.target.value)}
                 className="form-select"
               >
                 {Object.keys(LOGISTICS_DATA).map(key => (
@@ -1261,7 +1268,7 @@ export default function App() {
                 <label className="form-label">Identify As:</label>
                 <select 
                   value={activeCheckinUser} 
-                  onChange={(e) => setActiveCheckinUser(e.target.value)}
+                  onChange={(e) => handleActiveCheckinUserChange(e.target.value)}
                   disabled={isSharingLocation}
                   className="form-select"
                 >
