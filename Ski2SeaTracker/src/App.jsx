@@ -380,22 +380,6 @@ export default function App() {
           return mapped;
         });
 
-        // Map targeted teams
-        const targetedResults = TARGET_TEAMS.map(t => {
-          const found = allTeamsMapped.find(at => at.bib === t.bib);
-          if (found) {
-            return { ...t, ...found, success: true };
-          }
-          return { ...t, success: false };
-        });
-
-        // Filter and sort Family division teams (excluding all targeted teams)
-        const familyCompetitors = allTeamsMapped.filter(t => {
-          const isTargeted = TARGET_TEAMS.some(target => target.bib === t.bib);
-          if (isTargeted) return false;
-          return t.Division && t.Division.toLowerCase().includes('family');
-        });
-
         // Standing helper
         const getTeamStanding = (team) => {
           let completedLegCount = 0;
@@ -412,6 +396,52 @@ export default function App() {
           }
           return { completedLegCount, cumulativeTime };
         };
+
+        // Sort all teams to calculate overall position
+        const sortedAllTeams = [...allTeamsMapped].sort((a, b) => {
+          const sa = getTeamStanding(a);
+          const sb = getTeamStanding(b);
+          if (sa.completedLegCount !== sb.completedLegCount) {
+            return sb.completedLegCount - sa.completedLegCount; // More completed legs first
+          }
+          return sa.cumulativeTime - sb.cumulativeTime; // Lower cumulative time first
+        });
+
+        // Assign overall position
+        let currentRank = 1;
+        const totalTeams = allTeamsMapped.length;
+        sortedAllTeams.forEach((team, idx) => {
+          const sCurr = getTeamStanding(team);
+          team.totalTeams = totalTeams;
+          if (sCurr.completedLegCount === 0) {
+            team.overallRank = null; // Has not started
+          } else {
+            if (idx > 0) {
+              const prev = sortedAllTeams[idx - 1];
+              const sPrev = getTeamStanding(prev);
+              if (sPrev.completedLegCount !== sCurr.completedLegCount || sPrev.cumulativeTime !== sCurr.cumulativeTime) {
+                currentRank = idx + 1;
+              }
+            }
+            team.overallRank = currentRank;
+          }
+        });
+
+        // Map targeted teams
+        const targetedResults = TARGET_TEAMS.map(t => {
+          const found = allTeamsMapped.find(at => at.bib === t.bib);
+          if (found) {
+            return { ...t, ...found, success: true };
+          }
+          return { ...t, success: false };
+        });
+
+        // Filter and sort Family division teams (excluding all targeted teams)
+        const familyCompetitors = allTeamsMapped.filter(t => {
+          const isTargeted = TARGET_TEAMS.some(target => target.bib === t.bib);
+          if (isTargeted) return false;
+          return t.Division && t.Division.toLowerCase().includes('family');
+        });
 
         familyCompetitors.sort((a, b) => {
           const sa = getTeamStanding(a);
@@ -1015,7 +1045,14 @@ export default function App() {
                             </div>
                           </td>
                           <td style={{ fontSize: '0.8rem', color: '#06b6d4' }}>{lastLeg}</td>
-                          <td style={{ fontFamily: 'var(--font-title)', fontWeight: 'bold', fontSize: '0.85rem' }}>{lastTime}</td>
+                          <td>
+                            <div style={{ fontFamily: 'var(--font-title)', fontWeight: 'bold', fontSize: '0.85rem' }}>{lastTime}</div>
+                            {t.overallRank && (
+                              <div style={{ fontSize: '0.68rem', marginTop: '2px', color: 'hsl(var(--text-muted))', whiteSpace: 'nowrap' }}>
+                                Pos: {t.overallRank} / {t.totalTeams}
+                              </div>
+                            )}
+                          </td>
                         </tr>
                       );
                     })}
