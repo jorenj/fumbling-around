@@ -208,6 +208,23 @@ const getFallbackRacer = (bib, legId) => {
   return "";
 };
 
+// 2025 Race start and helper to estimate 2025 leg start times
+const RACE_START_2025 = new Date('2025-05-25T07:30:00-07:00');
+const get2025LegStartTime = (legId) => {
+  let cumulativeSec = 0;
+  for (let i = 0; i < LEGS_CONFIG.length; i++) {
+    const leg = LEGS_CONFIG[i];
+    if (leg.id === legId) {
+      return new Date(RACE_START_2025.getTime() + cumulativeSec * 1000);
+    }
+    const split2025 = JACKSONS_2025_SPLITS[leg.id];
+    if (split2025) {
+      cumulativeSec += split2025.seconds;
+    }
+  }
+  return RACE_START_2025;
+};
+
 // 2025 Splits for Jacksons Speak Louder Than Words (BIB 471 in 2025)
 const JACKSONS_2025_SPLITS = {
   xcski: { time: "49:44.2", seconds: 2984.2, rank: 258, racer: "Yvette Jackson" },
@@ -329,35 +346,86 @@ export default function App() {
   // Fetch results from RaceResult via backend proxy
   const fetchResults = async () => {
     setLoadingResults(true);
-    const results = [];
-
     try {
-      for (const t of TARGET_TEAMS) {
-        const queryParams = new URLSearchParams({
-          year: year,
-          fields: FIELDS.join(','),
-          filterbib: t.bib
-        });
+      const queryParams = new URLSearchParams({
+        year: year,
+        fields: FIELDS.join(',')
+      });
 
-        const res = await fetch(`/api/results?${queryParams.toString()}`);
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-        const data = await res.json();
-        
-        if (data && data.length > 0) {
-          const row = data[0];
+      const res = await fetch(`/api/results?${queryParams.toString()}`);
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+      const data = await res.json();
+      
+      if (data && data.length > 0) {
+        const allTeamsMapped = data.map(row => {
           const mapped = {};
           FIELDS.forEach((f, idx) => {
             mapped[f] = row[idx];
           });
-          results.push({ ...t, ...mapped, success: true });
-        } else {
-          // If no live data, create empty skeleton
-          results.push({ ...t, success: false });
-        }
+          mapped.bib = parseInt(mapped.BIB, 10);
+          return mapped;
+        });
+
+        // Map targeted teams
+        const targetedResults = TARGET_TEAMS.map(t => {
+          const found = allTeamsMapped.find(at => at.bib === t.bib);
+          if (found) {
+            return { ...t, ...found, success: true };
+          }
+          return { ...t, success: false };
+        });
+
+        // Filter and sort Family division teams (excluding all targeted teams)
+        const familyCompetitors = allTeamsMapped.filter(t => {
+          const isTargeted = TARGET_TEAMS.some(target => target.bib === t.bib);
+          if (isTargeted) return false;
+          return t.Division && t.Division.toLowerCase().includes('family');
+        });
+
+        // Standing helper
+        const getTeamStanding = (team) => {
+          let completedLegCount = 0;
+          let cumulativeTime = 0;
+          for (let i = 0; i < LEGS_CONFIG.length; i++) {
+            const splitVal = team[LEGS_CONFIG[i].splitKey];
+            const sec = parseTimeToSeconds(splitVal);
+            if (sec !== null && sec > 0) {
+              completedLegCount = i + 1;
+              cumulativeTime += sec;
+            } else {
+              break;
+            }
+          }
+          return { completedLegCount, cumulativeTime };
+        };
+
+        familyCompetitors.sort((a, b) => {
+          const sa = getTeamStanding(a);
+          const sb = getTeamStanding(b);
+          if (sa.completedLegCount !== sb.completedLegCount) {
+            return sb.completedLegCount - sa.completedLegCount; // More completed legs first
+          }
+          return sa.cumulativeTime - sb.cumulativeTime; // Lower cumulative time first
+        });
+
+        // Select top 2 family competitor teams
+        const topFamily = familyCompetitors.slice(0, 2).map(t => ({
+          bib: t.bib,
+          name: t.TeamName || `Team ${t.bib}`,
+          ...t,
+          success: true,
+          isFamilyCompetitor: true
+        }));
+
+        // Combine targeted teams + top 2 family competitors
+        const finalResults = [...targetedResults, ...topFamily];
+
+        setTeamsData(finalResults);
+        setLastRefreshed(new Date());
+        localStorage.setItem(`ski2sea_results_${year}`, JSON.stringify(finalResults));
+      } else {
+        throw new Error("No data returned from API");
       }
-      setTeamsData(results);
-      setLastRefreshed(new Date());
-      localStorage.setItem(`ski2sea_results_${year}`, JSON.stringify(results));
     } catch (err) {
       console.error("Error fetching results, loading from cache:", err);
       const cached = localStorage.getItem(`ski2sea_results_${year}`);
@@ -887,18 +955,23 @@ export default function App() {
                           <div style={{ textAlign: 'right' }}>
                             <span className="leg-time">{time}</span>
                             {year !== '2025' && JACKSONS_2025_SPLITS[leg.id] && (
-                              <div className="subtext" style={{ fontSize: '0.72rem', marginTop: '2px', whiteSpace: 'nowrap' }}>
-                                2025: {JACKSONS_2025_SPLITS[leg.id].time}
-                                {(() => {
-                                  const s26 = parseTimeToSeconds(time);
-                                  const s25 = parseTimeToSeconds(JACKSONS_2025_SPLITS[leg.id].time);
-                                  if (s26 !== null && s25 !== null) {
-                                    const diff = s26 - s25;
-                                    const color = diff <= 0 ? '#14b8a6' : '#f59e0b';
-                                    return <span style={{ marginLeft: '4px', color, fontWeight: '600' }}>({formatDelta(diff)})</span>;
-                                  }
-                                  return null;
-                                })()}
+                              <div className="subtext" style={{ fontSize: '0.72rem', marginTop: '2px', textAlign: 'right' }}>
+                                <div style={{ whiteSpace: 'nowrap' }}>
+                                  2025: {JACKSONS_2025_SPLITS[leg.id].time}
+                                  {(() => {
+                                    const s26 = parseTimeToSeconds(time);
+                                    const s25 = parseTimeToSeconds(JACKSONS_2025_SPLITS[leg.id].time);
+                                    if (s26 !== null && s25 !== null) {
+                                      const diff = s26 - s25;
+                                      const color = diff <= 0 ? '#14b8a6' : '#f59e0b';
+                                      return <span style={{ marginLeft: '4px', color, fontWeight: '600' }}>({formatDelta(diff)})</span>;
+                                    }
+                                    return null;
+                                  })()}
+                                </div>
+                                <div style={{ fontSize: '0.65rem', opacity: 0.8, marginTop: '1px', whiteSpace: 'nowrap' }}>
+                                  2025 Start: {get2025LegStartTime(leg.id).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                                </div>
                               </div>
                             )}
                             <div className="leg-rank" style={{ fontSize: '0.75rem', marginTop: '2px' }}>Rank: {rank && rank !== -1 ? rank : "—"}</div>
@@ -907,8 +980,11 @@ export default function App() {
                           <div style={{ textAlign: 'right' }}>
                             <span className="status-badge status-progress">Racing</span>
                             {year !== '2025' && JACKSONS_2025_SPLITS[leg.id] && (
-                              <div className="subtext" style={{ fontSize: '0.72rem', marginTop: '4px', whiteSpace: 'nowrap' }}>
-                                2025: {JACKSONS_2025_SPLITS[leg.id].time}
+                              <div className="subtext" style={{ fontSize: '0.72rem', marginTop: '4px', textAlign: 'right' }}>
+                                <div style={{ whiteSpace: 'nowrap' }}>2025: {JACKSONS_2025_SPLITS[leg.id].time}</div>
+                                <div style={{ fontSize: '0.65rem', opacity: 0.8, marginTop: '1px', whiteSpace: 'nowrap' }}>
+                                  2025 Start: {get2025LegStartTime(leg.id).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                                </div>
                               </div>
                             )}
                           </div>
@@ -916,8 +992,11 @@ export default function App() {
                           <div style={{ textAlign: 'right' }}>
                             <span className="status-badge status-todo">Waiting</span>
                             {year !== '2025' && JACKSONS_2025_SPLITS[leg.id] && (
-                              <div className="subtext" style={{ fontSize: '0.72rem', marginTop: '4px', whiteSpace: 'nowrap' }}>
-                                2025: {JACKSONS_2025_SPLITS[leg.id].time}
+                              <div className="subtext" style={{ fontSize: '0.72rem', marginTop: '4px', textAlign: 'right' }}>
+                                <div style={{ whiteSpace: 'nowrap' }}>2025: {JACKSONS_2025_SPLITS[leg.id].time}</div>
+                                <div style={{ fontSize: '0.65rem', opacity: 0.8, marginTop: '1px', whiteSpace: 'nowrap' }}>
+                                  2025 Start: {get2025LegStartTime(leg.id).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                                </div>
                               </div>
                             )}
                           </div>
