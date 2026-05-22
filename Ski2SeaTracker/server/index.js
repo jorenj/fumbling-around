@@ -164,6 +164,9 @@ app.post('/api/overland', (req, res) => {
 });
 
 // GET Race Results Proxy API
+const resultsCache = {};
+const CACHE_TTL_MS = 7000; // 7 seconds cache TTL
+
 app.get('/api/results', resultsRateLimiter, async (req, res) => {
   try {
     const { year, fields, filterbib } = req.query;
@@ -177,25 +180,71 @@ app.get('/api/results', resultsRateLimiter, async (req, res) => {
       return res.status(400).json({ error: `Unsupported year: ${year}` });
     }
 
-    const url = new URL(`https://api.raceresult.com/${raceId}/${RACERESULT_API_KEY}`);
-    url.searchParams.append('listFormat', 'JSON');
-    url.searchParams.append('fields', fields);
-    if (filterbib) {
-      url.searchParams.append('filterbib', filterbib);
+    const cacheKey = `${year}_${fields}_${filterbib || ''}`;
+    const now = Date.now();
+    const cacheEntry = resultsCache[cacheKey];
+
+    // If cache is fresh, return it
+    if (cacheEntry && (now - cacheEntry.timestamp < CACHE_TTL_MS) && cacheEntry.data) {
+      return res.json(cacheEntry.data);
     }
 
-    const response = await fetch(url.toString(), {
-      headers: {
-        'User-Agent': 'Mozilla/5.0'
+    // If a fetch is currently in progress, wait for it
+    if (cacheEntry && cacheEntry.fetching) {
+      try {
+        const data = await cacheEntry.fetching;
+        return res.json(data);
+      } catch {
+        // Fall through to fetch again if the active promise fails
       }
-    });
-
-    if (!response.ok) {
-      throw new Error(`Raceresult API returned status ${response.status}`);
     }
 
-    const data = await response.json();
-    res.json(data);
+    // Start a new fetch
+    const fetchPromise = (async () => {
+      const url = new URL(`https://api.raceresult.com/${raceId}/${RACERESULT_API_KEY}`);
+      url.searchParams.append('listFormat', 'JSON');
+      url.searchParams.append('fields', fields);
+      if (filterbib) {
+        url.searchParams.append('filterbib', filterbib);
+      }
+
+      const response = await fetch(url.toString(), {
+        headers: {
+          'User-Agent': 'Mozilla/5.0'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Raceresult API returned status ${response.status}`);
+      }
+
+      return await response.json();
+    })();
+
+    // Store in cache (preserving stale data as fallback)
+    resultsCache[cacheKey] = {
+      timestamp: now,
+      fetching: fetchPromise,
+      data: cacheEntry ? cacheEntry.data : null
+    };
+
+    try {
+      const data = await fetchPromise;
+      if (resultsCache[cacheKey]) {
+        resultsCache[cacheKey].data = data;
+        resultsCache[cacheKey].fetching = null;
+      }
+      res.json(data);
+    } catch (error) {
+      console.error('Error proxying results:', error);
+      // Serve stale fallback if available, otherwise reject
+      if (resultsCache[cacheKey] && resultsCache[cacheKey].data) {
+        res.json(resultsCache[cacheKey].data);
+      } else {
+        delete resultsCache[cacheKey];
+        res.status(500).json({ error: 'Failed to fetch race results' });
+      }
+    }
   } catch (error) {
     console.error('Error proxying results:', error);
     res.status(500).json({ error: 'Failed to fetch race results' });

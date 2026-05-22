@@ -544,7 +544,7 @@ export default function App() {
     fetchResults();
     fetchLocations();
 
-    const resultsInterval = setInterval(fetchResults, 30000);
+    const resultsInterval = setInterval(fetchResults, 7000);
     const locationsInterval = setInterval(fetchLocations, 15000);
 
     return () => {
