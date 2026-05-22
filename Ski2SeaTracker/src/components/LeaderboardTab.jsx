@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { LEGS_CONFIG, JACKSONS_2025_SPLITS, RACE_START } from '../lib/constants';
-import { getLegStatus, parseTimeToSeconds, formatDelta, getFallbackRacer, get2025LegStartTime } from '../lib/utils';
+import { getLegStatus, parseTimeToSeconds, formatDelta, getFallbackRacer, get2025LegStartTime, formatSecondsToTime } from '../lib/utils';
 import ActiveLegCard from './ActiveLegCard';
 
 export default function LeaderboardTab({
@@ -90,12 +90,10 @@ export default function LeaderboardTab({
               {teamsData.map(t => {
                 // Find last completed leg split for this team
                 let lastLeg = 'Not Started';
-                let lastTime = '—';
                 for (let i = LEGS_CONFIG.length - 1; i >= 0; i--) {
                   const splitVal = t[LEGS_CONFIG[i].splitKey];
                   if (splitVal && splitVal !== "" && splitVal !== "0") {
                     lastLeg = LEGS_CONFIG[i].name;
-                    lastTime = splitVal;
                     break;
                   }
                 }
@@ -118,7 +116,7 @@ export default function LeaderboardTab({
                     </td>
                     <td style={{ fontSize: '0.8rem', color: '#06b6d4' }}>{lastLeg}</td>
                     <td>
-                      <div style={{ fontFamily: 'var(--font-title)', fontWeight: 'bold', fontSize: '0.85rem' }}>{lastTime}</div>
+                      <div style={{ fontFamily: 'var(--font-title)', fontWeight: 'bold', fontSize: '0.85rem' }}>{formatSecondsToTime(t.cumulativeTime)}</div>
                       {t.overallRank && (
                         <div style={{ fontSize: '0.68rem', marginTop: '2px', color: 'hsl(var(--text-muted))', whiteSpace: 'nowrap' }}>
                           Pos: {t.overallRank} / {t.totalTeams}

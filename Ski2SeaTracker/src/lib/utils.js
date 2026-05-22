@@ -132,3 +132,22 @@ export const getLegStatus = (team, legIdx, now, raceStart) => {
 
   return 'todo';
 };
+
+// Format seconds into a race time duration string (h:mm:ss.d or mm:ss.d)
+export const formatSecondsToTime = (totalSeconds) => {
+  if (totalSeconds === null || totalSeconds === undefined || isNaN(totalSeconds) || totalSeconds <= 0) return "—";
+  
+  // Round to nearest tenth first to avoid rollover issues during formatting
+  const roundedSecs = Math.round(totalSeconds * 10) / 10;
+  
+  const hrs = Math.floor(roundedSecs / 3600);
+  const mins = Math.floor((roundedSecs % 3600) / 60);
+  const secs = Math.floor(roundedSecs % 60);
+  const tenths = Math.round((roundedSecs % 1) * 10);
+  
+  if (hrs > 0) {
+    return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}.${tenths}`;
+  }
+  return `${mins}:${secs.toString().padStart(2, '0')}.${tenths}`;
+};
+
