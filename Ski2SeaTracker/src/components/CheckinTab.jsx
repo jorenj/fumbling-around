@@ -106,8 +106,9 @@ export default function CheckinTab({
               <b>OwnTracks</b> is free, open source, available globally (including Canada), and runs reliably in the background on both <b>iOS</b> and <b>Android</b>.
             </p>
             <p className="subtext" style={{ fontSize: '0.75rem', lineHeight: '1.6', marginBottom: '1.25rem' }}>
-              1. Install <b>OwnTracks</b> from your app store.<br />
-              2. <a 
+              1. Select your name/leg in the <b>Select Identity</b> card above (customizes the configuration link).<br />
+              2. Install <b>OwnTracks</b> from your app store.<br />
+              3. <a 
                 href={`owntracks:///config?inline=${btoa(JSON.stringify({
                   _type: 'configuration',
                   mode: 3,
@@ -129,12 +130,12 @@ export default function CheckinTab({
               >
                 📲 Tap here to Auto-Configure OwnTracks App
               </a> (or manually copy-paste the connection parameters below with Mode set to HTTP).<br />
-              3. <b>Configure iOS Settings (Critical for background updates):</b><br />
+              4. <b>Configure iOS Settings (Critical for background updates):</b><br />
               &nbsp;&nbsp;&nbsp;a. Open the iOS <b>Settings</b> app (or try this <a href="App-Prefs:root=Privacy&path=LOCATION" style={{ color: '#06b6d4', textDecoration: 'underline', fontWeight: 'bold' }}>Settings Link</a>).<br />
               &nbsp;&nbsp;&nbsp;b. Scroll down to the bottom list of applications and tap <b>OwnTracks</b>.<br />
               &nbsp;&nbsp;&nbsp;c. Tap <b>Location</b> and select <b>Always</b> (if "Always" is missing, open OwnTracks first and allow location once to trigger iOS prompts).<br />
               &nbsp;&nbsp;&nbsp;d. Ensure <b>Background App Refresh</b>, <b>Motion & Fitness</b>, and <b>Cellular Data</b> are all toggled <b>ON</b>.<br />
-              4. <b>Configure Android Settings:</b> Go to Settings → Apps → OwnTracks → Permissions → Location → select <b>"Allow all the time"</b>.
+              5. <b>Configure Android Settings:</b> Go to Settings → Apps → OwnTracks → Permissions → Location → select <b>"Allow all the time"</b>.
             </p>
             <div style={{ background: 'rgba(0,0,0,0.15)', padding: '0.75rem', borderRadius: 'var(--radius)', border: '1px solid hsl(var(--border) / 0.5)', marginBottom: '0.5rem' }}>
               <div style={{ fontSize: '0.72rem', fontWeight: 'bold', color: '#14b8a6', marginBottom: '4px' }}>📋 OwnTracks HTTP Parameters (Manual Setup)</div>
@@ -172,10 +173,11 @@ export default function CheckinTab({
               </div>
             </div>
             <p className="subtext" style={{ fontSize: '0.75rem', lineHeight: '1.5' }}>
-              1. Install <b>Traccar Client</b> from your app store.<br />
-              2. Open the app and scan the QR code above, or manually fill in the URL and Device ID.<br />
-              3. Set **Frequency** to **60** seconds.<br />
-              4. Toggle the <b>Service Status</b> switch at the top to <b>ON</b>.
+              1. Select your name/leg in the <b>Select Identity</b> card above (customizes the QR code).<br />
+              2. Install <b>Traccar Client</b> from your app store.<br />
+              3. Open the app and scan the QR code above, or manually fill in the URL and Device ID.<br />
+              4. Set **Frequency** to **60** seconds.<br />
+              5. Toggle the <b>Service Status</b> switch at the top to <b>ON</b>.
             </p>
           </div>
         )}
@@ -187,8 +189,9 @@ export default function CheckinTab({
               Use the free <b>Overland GPS Tracker</b> app. It runs in the background and sends GPS updates even when your phone is locked. <i>Note: Available on US App Store only.</i>
             </p>
             <p className="subtext" style={{ fontSize: '0.75rem', lineHeight: '1.6' }}>
-              1. Install <a href="https://apps.apple.com/us/app/overland-gps-tracker/id1452445362" target="_blank" rel="noopener noreferrer" style={{ color: '#06b6d4', textDecoration: 'underline', fontWeight: 'bold' }}>Overland GPS Tracker</a> (US iOS).<br />
-              2. <a 
+              1. Select your name/leg in the <b>Select Identity</b> card above (customizes the configuration link).<br />
+              2. Install <a href="https://apps.apple.com/us/app/overland-gps-tracker/id1452445362" target="_blank" rel="noopener noreferrer" style={{ color: '#06b6d4', textDecoration: 'underline', fontWeight: 'bold' }}>Overland GPS Tracker</a> (US iOS).<br />
+              3. <a 
                 href={`overland://setup?url=${encodeURIComponent(window.location.origin + '/api/overland')}&device_id=${activeCheckinUser}`}
                 style={{ 
                   display: 'inline-block',
@@ -205,8 +208,8 @@ export default function CheckinTab({
               >
                 📲 Tap here to Auto-Configure Overland App
               </a>.<br />
-              3. Go to Settings → Overland → Location → select <b>"Always Allow"</b>.<br />
-              4. On the <b>"Tracker"</b> page, set the <b>Send Interval</b> to <b>1m</b>, then toggle tracking <b>ON</b>.
+              4. Go to Settings → Overland → Location → select <b>"Always Allow"</b>.<br />
+              5. On the <b>"Tracker"</b> page, set the <b>Send Interval</b> to <b>1m</b>, then toggle tracking <b>ON</b>.
             </p>
           </div>
         )}
