@@ -135,7 +135,11 @@ export default function CheckinTab({
               &nbsp;&nbsp;&nbsp;b. Scroll down to the bottom list of applications and tap <b>OwnTracks</b>.<br />
               &nbsp;&nbsp;&nbsp;c. Tap <b>Location</b> and select <b>Always</b> (if "Always" is missing, open OwnTracks first and allow location once to trigger iOS prompts).<br />
               &nbsp;&nbsp;&nbsp;d. Ensure <b>Background App Refresh</b>, <b>Motion & Fitness</b>, and <b>Cellular Data</b> are all toggled <b>ON</b>.<br />
-              5. <b>Configure Android Settings:</b> Go to Settings → Apps → OwnTracks → Permissions → Location → select <b>"Allow all the time"</b>.
+              &nbsp;&nbsp;&nbsp;e. <b>⚠️ DO NOT FORCE CLOSE:</b> Keep OwnTracks open in the background (do not "swipe away" the app from the iOS App Switcher). If you force close it, iOS will block background updates until you open the app again.<br />
+              5. <b>Configure Android Settings:</b><br />
+              &nbsp;&nbsp;&nbsp;a. Go to Settings → Apps → OwnTracks → Permissions → Location → select <b>"Allow all the time"</b>.<br />
+              &nbsp;&nbsp;&nbsp;b. Go to Settings → Apps → OwnTracks → Battery → select <b>"Unrestricted"</b> (disable battery optimization).<br />
+              &nbsp;&nbsp;&nbsp;c. In the OwnTracks app settings, enable <b>"Ongoing Notification"</b> to keep the background service active.
             </p>
             <div style={{ background: 'rgba(0,0,0,0.15)', padding: '0.75rem', borderRadius: 'var(--radius)', border: '1px solid hsl(var(--border) / 0.5)', marginBottom: '0.5rem' }}>
               <div style={{ fontSize: '0.72rem', fontWeight: 'bold', color: '#14b8a6', marginBottom: '4px' }}>📋 OwnTracks HTTP Parameters (Manual Setup)</div>
