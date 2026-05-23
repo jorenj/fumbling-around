@@ -70,9 +70,9 @@ export const get2025LegStartTime = (legId) => {
 
 export const getDisplayName = (key) => {
   if (LOGISTICS_DATA[key]) return LOGISTICS_DATA[key].name;
-  if (key === 'CAR_A') return 'Car A';
+  if (key === 'CAR_A') return "Iver's Model Y";
   if (key === 'CYBERTRUCK') return 'Cybertruck';
-  if (key === 'CAR_C') return 'Car C';
+  if (key === 'CAR_C') return "Sam's Bronco";
   return key;
 };
 

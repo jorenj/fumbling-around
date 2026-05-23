@@ -34,11 +34,12 @@ export const LEGS_CONFIG = [
 
 // Map transition zones
 export const TRANSITIONS = [
-  { name: "Mt. Baker Area", leg: "XC & DH Ski", lat: 48.857, lng: -121.679, desc: "Leg 1 & 2 start/finish. Mountain Road closes at 7:15am." },
-  { name: "DOT Station (Canyon Creek)", leg: "Run to Bike", lat: 48.910, lng: -122.095, desc: "Leg 3 runner finishes, Leg 4 road biker launches." },
-  { name: "Everson (Riverside Park)", leg: "Bike to Canoe", lat: 48.974, lng: -122.351, desc: "Leg 4 biker finishes, Leg 5 canoeists launch." },
-  { name: "Hovander Park (Ferndale)", leg: "Canoe to Cyclocross to Kayak", lat: 48.836, lng: -122.594, desc: "Leg 5 canoeists finish, Leg 6 cyclocross biker starts, Leg 7 kayaker launches." },
-  { name: "Zuanich Park (Bellingham)", leg: "Kayak to Finish", lat: 48.754, lng: -122.512, desc: "Leg 7 kayaker finishes. Celebrate here!" }
+  { name: "Mt. Baker Area", leg: "XC Ski, DH Ski, Run Start", lat: 48.857, lng: -121.679, desc: "Leg 1 (XC Ski) and Leg 2 (DH Ski) start/finish. Leg 3 (Run) starts. Mountain Road closes at 7:15am." },
+  { name: "DOT Station (Canyon Creek)", leg: "Run to Road Bike", lat: 48.910, lng: -122.095, desc: "Leg 3 runner finishes, Leg 4 road biker launches." },
+  { name: "Everson (Riverside Park)", leg: "Road Bike to Canoe", lat: 48.974, lng: -122.351, desc: "Leg 4 road biker finishes, Leg 5 canoeists launch." },
+  { name: "Hovander Homestead Park (Ferndale)", leg: "Canoe to Cyclocross", lat: 48.836, lng: -122.594, desc: "Leg 5 canoeists finish, Leg 6 cyclocross biker launches." },
+  { name: "Zuanich Park (Bellingham)", leg: "Cyclocross to Kayak", lat: 48.754, lng: -122.512, desc: "Leg 6 cyclocross biker finishes, Leg 7 kayaker launches." },
+  { name: "Marine Park (Fairhaven)", leg: "Kayak Finish", lat: 48.719, lng: -122.516, desc: "Leg 7 kayaker finishes. Finish Line and celebration here!" }
 ];
 
 // Maps leg id → LOGISTICS_DATA key(s) for GPS lookup
@@ -59,8 +60,8 @@ export const LEG_TRANSITIONS = {
   run:    { start: 0, finish: 1 },
   bike:   { start: 1, finish: 2 },
   canoe:  { start: 2, finish: 3 },
-  cyclox: { start: 3, finish: 3 },
-  kayak:  { start: 3, finish: 4 },
+  cyclox: { start: 3, finish: 4 },
+  kayak:  { start: 4, finish: 5 },
 };
 
 // Logistics task lists
@@ -69,26 +70,26 @@ export const LOGISTICS_DATA = {
     name: "Iver Jackson",
     leg: "Cross Country Ski",
     briefing: "7:00am briefing @ Mt. Baker Ski Area",
-    car: "Car A (with Tavin, Mac, Sam)",
+    car: "Iver's Model Y (with Tavin, Mac, Sam)",
     tasks: [
-      "Drive up to Mt. Baker in Car A with Tavin, Mac, and Sam.",
+      "Drive up to Mt. Baker in Iver's Model Y with Tavin, Mac, and Sam.",
       "Attend the 7:00am briefing and warmup.",
       "Ski super fast! (Leg 1)",
       "Wait for the mountain road to open after DH Ski.",
       "Drop Tavin off at Jonathan's trailer.",
       "Proceed to Hovander Park (Canoe/Cyclocross transition) to hang out.",
-      "Drive Car A with Sam to the Cyclocross finish.",
+      "Drive Iver's Model Y with Sam to the Cyclocross finish.",
       "Help David launch the kayak.",
-      "Drive Car A to the finish line at Zuanich Point Park."
+      "Drive Iver's Model Y to the finish line at Marine Park."
     ]
   },
   TAVIN: {
     name: "Tavin Jackson",
     leg: "Downhill Ski/Snowboard",
     briefing: "7:00am briefing @ Mt. Baker Ski Area",
-    car: "Car A, then Jonathan's trailer, then Cybertruck",
+    car: "Iver's Model Y, then Jonathan's trailer, then Cybertruck",
     tasks: [
-      "Drive up to Mt. Baker in Car A with Iver, Mac, and Sam.",
+      "Drive up to Mt. Baker in Iver's Model Y with Iver, Mac, and Sam.",
       "Attend the 7:00am briefing and boot pack super fast! (Leg 2)",
       "Get dropped off at Jonathan's trailer on the way back down.",
       "Drive Jonathan's trailer to Hovander Park (Canoe/Cyclocross transition) to hang out.",
@@ -99,9 +100,9 @@ export const LOGISTICS_DATA = {
     name: "Mackenzie Brown (Mac)",
     leg: "Run",
     briefing: "8:00am briefing @ Mt. Baker Highway (DOT Station)",
-    car: "Car A, then Cybertruck",
+    car: "Iver's Model Y, then Cybertruck",
     tasks: [
-      "Drive up to Mt. Baker in Car A, get dropped off at the run start (Canyon Lake / DOT).",
+      "Drive up to Mt. Baker in Iver's Model Y, get dropped off at the run start (Canyon Lake / DOT).",
       "Run super fast! (Leg 3)",
       "Hang out in Jonathan's trailer until Tavin arrives.",
       "Drive with Tavin to Hovander Park.",
@@ -150,10 +151,10 @@ export const LOGISTICS_DATA = {
     name: "David Jackson",
     leg: "Kayak",
     briefing: "11:45am briefing @ Zuanich Point Park",
-    car: "Car C",
+    car: "Sam's Bronco",
     tasks: [
-      "Drive Car C with Joren to Hovander Park in time for the 11:00am cyclocross briefing.",
-      "Leave Hovander Park early in Car C to get to the Kayak launch.",
+      "Drive Sam's Bronco with Joren to Hovander Park in time for the 11:00am cyclocross briefing.",
+      "Leave Hovander Park early in Sam's Bronco to get to the Kayak launch.",
       "Attend the 11:45am kayak briefing.",
       "Kayak super fast! (Leg 7)",
       "Beers at the finish line!"
@@ -163,12 +164,12 @@ export const LOGISTICS_DATA = {
     name: "Joren Jackson",
     leg: "Cyclocross",
     briefing: "11:00am briefing @ Hovander Park",
-    car: "Car C",
+    car: "Sam's Bronco",
     tasks: [
-      "Drive in Car C with David to Hovander Park.",
+      "Drive in Sam's Bronco with David to Hovander Park.",
       "Attend the 11:00am cyclocross briefing.",
       "Bike super fast! (Leg 6)",
-      "Drive Car C to the finish line with Sam"
+      "Drive Sam's Bronco to the finish line with Sam"
     ]
   }
 };
