@@ -229,6 +229,11 @@ export default function CheckinTab({
           </button>
         </div>
 
+        <p className="subtext" style={{ fontSize: '0.75rem', lineHeight: '1.5', marginTop: '0.5rem', marginBottom: '1rem' }}>
+          1. Ensure the correct identity is selected in the <b>Select Identity</b> card above.<br />
+          2. Tap the button above to start/stop broadcasting your location.
+        </p>
+
         {/* Status details */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '1rem', borderTop: '1px solid hsl(var(--border))', paddingTop: '1rem', fontSize: '0.85rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
