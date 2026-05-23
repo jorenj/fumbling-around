@@ -6,19 +6,19 @@ export const TARGET_TEAMS = [
   { bib: 32, name: "Daddy's Back, by Kenny Loggins" }
 ];
 
-// Race start: May 25, 2026 at 7:30am Pacific (PDT = UTC-7)
-export const RACE_START = new Date('2026-05-25T07:30:00-07:00');
+// Race start: May 24, 2026 at 7:30am Pacific (PDT = UTC-7)
+export const RACE_START = new Date('2026-05-24T07:30:00-07:00');
 
 // Briefing times per racer (PDT). Used to show countdown on their checklist.
 export const BRIEFING_TIMES = {
-  IVER:     new Date('2026-05-25T07:00:00-07:00'),
-  TAVIN:    new Date('2026-05-25T07:00:00-07:00'),
-  MAC:      new Date('2026-05-25T08:00:00-07:00'),
-  JONATHAN: new Date('2026-05-25T09:00:00-07:00'),
-  CARMEN:   new Date('2026-05-25T09:15:00-07:00'),
-  YVETTE:   new Date('2026-05-25T09:15:00-07:00'),
-  DAVID:    new Date('2026-05-25T11:45:00-07:00'),
-  JOREN:    new Date('2026-05-25T11:00:00-07:00'),
+  IVER:     new Date('2026-05-24T07:00:00-07:00'),
+  TAVIN:    new Date('2026-05-24T07:00:00-07:00'),
+  MAC:      new Date('2026-05-24T08:00:00-07:00'),
+  JONATHAN: new Date('2026-05-24T09:00:00-07:00'),
+  CARMEN:   new Date('2026-05-24T09:15:00-07:00'),
+  YVETTE:   new Date('2026-05-24T09:15:00-07:00'),
+  DAVID:    new Date('2026-05-24T11:45:00-07:00'),
+  JOREN:    new Date('2026-05-24T11:00:00-07:00'),
 };
 
 // 7 Legs config in order
