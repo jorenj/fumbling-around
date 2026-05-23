@@ -191,10 +191,40 @@ def fetch_canoe_river_route():
             
     print(f"Stitched river route has {len(stitched)} coordinates.")
     
+    # Clip the stitched path between Everson and Ferndale
+    ferndale_pt = [-122.594, 48.836]
+    
+    # Find the index of the coordinate closest to Everson
+    min_dist_everson = float('inf')
+    start_idx = 0
+    for idx, pt in enumerate(stitched):
+        d = dist_sq(pt, everson_pt)
+        if d < min_dist_everson:
+            min_dist_everson = d
+            start_idx = idx
+            
+    # Find the index of the coordinate closest to Ferndale
+    min_dist_ferndale = float('inf')
+    end_idx = len(stitched) - 1
+    for idx, pt in enumerate(stitched):
+        d = dist_sq(pt, ferndale_pt)
+        if d < min_dist_ferndale:
+            min_dist_ferndale = d
+            end_idx = idx
+            
+    # Slice the coordinates list
+    if start_idx <= end_idx:
+        clipped = stitched[start_idx : end_idx + 1]
+    else:
+        clipped = stitched[end_idx : start_idx + 1]
+        clipped.reverse()
+        
+    print(f"Clipped river route from {len(stitched)} to {len(clipped)} coordinates (Everson to Ferndale).")
+    
     # Downsample the river route to keep it small
-    downsampled_river = stitched[::5]
-    if stitched[-1] not in downsampled_river:
-        downsampled_river.append(stitched[-1])
+    downsampled_river = clipped[::5]
+    if clipped[-1] not in downsampled_river:
+        downsampled_river.append(clipped[-1])
         
     return downsampled_river
 
