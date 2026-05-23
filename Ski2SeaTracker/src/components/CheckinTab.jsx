@@ -139,7 +139,12 @@ export default function CheckinTab({
             <p className="subtext" style={{ fontSize: '0.75rem', lineHeight: '1.5' }}>
               1. Install <b>OwnTracks</b> from your app store.<br />
               2. Tap the button above to auto-configure the app, or manually copy-paste the URL above into connection settings (Mode: HTTP).<br />
-              3. Ensure location permissions are set to <b>"Always Allow"</b> and background refresh is enabled.
+              3. <b>Configure iOS Settings (Critical for background updates):</b><br />
+              &nbsp;&nbsp;&nbsp;a. Open the iOS <b>Settings</b> app (or try this <a href="App-Prefs:root=Privacy&path=LOCATION" style={{ color: '#06b6d4', textDecoration: 'underline', fontWeight: 'bold' }}>Settings Link</a>).<br />
+              &nbsp;&nbsp;&nbsp;b. Scroll down to the bottom list of applications and tap <b>OwnTracks</b>.<br />
+              &nbsp;&nbsp;&nbsp;c. Tap <b>Location</b> and select <b>Always</b> (if "Always" is missing, open OwnTracks first and allow location once to trigger iOS prompts).<br />
+              &nbsp;&nbsp;&nbsp;d. Ensure <b>Background App Refresh</b>, <b>Motion & Fitness</b>, and <b>Cellular Data</b> are all toggled <b>ON</b>.<br />
+              4. <b>Configure Android Settings:</b> Go to Settings → Apps → OwnTracks → Permissions → Location → select <b>"Allow all the time"</b>.
             </p>
           </div>
         )}
