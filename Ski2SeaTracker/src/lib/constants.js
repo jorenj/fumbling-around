@@ -36,7 +36,7 @@ export const LEGS_CONFIG = [
 export const TRANSITIONS = [
   { name: "Mt. Baker Area", leg: "XC Ski, DH Ski, Run Start", lat: 48.857, lng: -121.679, desc: "Leg 1 (XC Ski) and Leg 2 (DH Ski) start/finish. Leg 3 (Run) starts. Mountain Road closes at 7:15am." },
   { name: "DOT Station (Canyon Creek)", leg: "Run to Road Bike", lat: 48.910, lng: -122.095, desc: "Leg 3 runner finishes, Leg 4 road biker launches." },
-  { name: "Everson (Riverside Park)", leg: "Road Bike to Canoe", lat: 48.974, lng: -122.351, desc: "Leg 4 road biker finishes, Leg 5 canoeists launch." },
+  { name: "Everson (Riverside Park)", leg: "Road Bike to Canoe", lat: 48.917, lng: -122.349, desc: "Leg 4 road biker finishes, Leg 5 canoeists launch." },
   { name: "Hovander Homestead Park (Ferndale)", leg: "Canoe to Cyclocross", lat: 48.836, lng: -122.594, desc: "Leg 5 canoeists finish, Leg 6 cyclocross biker launches." },
   { name: "Zuanich Park (Bellingham)", leg: "Cyclocross to Kayak", lat: 48.754, lng: -122.512, desc: "Leg 6 cyclocross biker finishes, Leg 7 kayaker launches." },
   { name: "Marine Park (Fairhaven)", leg: "Kayak Finish", lat: 48.719, lng: -122.516, desc: "Leg 7 kayaker finishes. Finish Line and celebration here!" }
