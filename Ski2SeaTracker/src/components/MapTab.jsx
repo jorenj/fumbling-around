@@ -60,6 +60,29 @@ function LiveMap({ memberLocations }) {
         attribution: '&copy; OpenStreetMap'
       }).addTo(leafletMap.current);
 
+      // Fetch and render actual race route tracks if available
+      fetch('/data/route.geojson')
+        .then(res => {
+          if (!res.ok) throw new Error('Route GeoJSON file not found');
+          return res.json();
+        })
+        .then(data => {
+          L.geoJSON(data, {
+            style: (feature) => ({
+              color: feature.properties.color || '#06b6d4',
+              weight: 4,
+              opacity: 0.8,
+              dashArray: feature.properties.leg === 'xcski' ? '5, 5' : null
+            }),
+            onEachFeature: (feature, layer) => {
+              layer.bindTooltip(`<b>${feature.properties.name}</b>`, { sticky: true });
+            }
+          }).addTo(leafletMap.current);
+        })
+        .catch(err => {
+          console.warn('Race route track not loaded:', err.message);
+        });
+
       // Plot transition zone markers
       TRANSITIONS.forEach(t => {
         const transIcon = L.divIcon({
