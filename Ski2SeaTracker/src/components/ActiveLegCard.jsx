@@ -210,6 +210,7 @@ export default function ActiveLegCard({ teamsData, now, memberLocations, year })
       {showMap && (
         <div style={{ borderRadius: 'var(--radius)', overflow: 'hidden', border: '1px solid hsl(var(--border))' }}>
           <ActiveLegMiniMap
+            legId={leg.id}
             startTransition={startTrans}
             finishTransition={finishTrans}
             gpsPoints={gpsPoints}
@@ -226,7 +227,7 @@ export default function ActiveLegCard({ teamsData, now, memberLocations, year })
 }
 
 // Mini-map for the Active Leg card
-function ActiveLegMiniMap({ startTransition, finishTransition, gpsPoints }) {
+function ActiveLegMiniMap({ legId, startTransition, finishTransition, gpsPoints }) {
   const mapRef = useRef(null);
   const leafletMap = useRef(null);
 
@@ -259,6 +260,29 @@ function ActiveLegMiniMap({ startTransition, finishTransition, gpsPoints }) {
     leafletMap.current.eachLayer(layer => {
       if (!(layer instanceof L.TileLayer)) leafletMap.current.removeLayer(layer);
     });
+
+    // Fetch and render the active leg route
+    fetch('/data/route.geojson')
+      .then(res => {
+        if (!res.ok) throw new Error('Route file not found');
+        return res.json();
+      })
+      .then(data => {
+        const activeFeature = data.features.find(f => f.properties.leg === legId);
+        if (activeFeature && leafletMap.current) {
+          L.geoJSON(activeFeature, {
+            style: {
+              color: activeFeature.properties.color || '#14b8a6',
+              weight: 5,
+              opacity: 0.85,
+              dashArray: legId === 'xcski' ? '5, 5' : null
+            }
+          }).addTo(leafletMap.current);
+        }
+      })
+      .catch(err => {
+        console.warn('MiniMap route track not loaded:', err.message);
+      });
 
     const points = [];
 
@@ -307,7 +331,7 @@ function ActiveLegMiniMap({ startTransition, finishTransition, gpsPoints }) {
     } else if (points.length === 1) {
       leafletMap.current.setView(points[0], 13);
     }
-  }, [startTransition, finishTransition, gpsPoints]);
+  }, [legId, startTransition, finishTransition, gpsPoints]);
 
   return <div ref={mapRef} style={{ height: '200px', width: '100%' }} />;
 }
