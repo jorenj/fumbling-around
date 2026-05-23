@@ -102,32 +102,41 @@ export default function CheckinTab({
         {/* Tab Content: OwnTracks */}
         {selectedGpsApp === 'owntracks' && (
           <div>
-            <p className="subtext" style={{ lineHeight: '1.4', marginBottom: '1rem', color: 'hsl(var(--text-primary))' }}>
+            <p className="subtext" style={{ lineHeight: '1.4', marginBottom: '1.25rem', color: 'hsl(var(--text-primary))' }}>
               <b>OwnTracks</b> is free, open source, available globally (including Canada), and runs reliably in the background on both <b>iOS</b> and <b>Android</b>.
             </p>
-            <div style={{ marginBottom: '1rem' }}>
-              <a 
+            <p className="subtext" style={{ fontSize: '0.75rem', lineHeight: '1.6', marginBottom: '1.25rem' }}>
+              1. Install <b>OwnTracks</b> from your app store.<br />
+              2. <a 
                 href={`owntracks:///config?inline=${btoa(JSON.stringify({
                   _type: 'configuration',
                   mode: 3,
                   url: `${window.location.origin}/api/owntracks?device_id=${activeCheckinUser}`,
                   tid: activeCheckinUser.substring(0, 2)
                 }))}`}
-                className="btn-primary"
                 style={{ 
-                  textDecoration: 'none', 
-                  textAlign: 'center', 
+                  display: 'inline-block',
+                  margin: '4px 0',
+                  padding: '4px 10px',
                   background: 'linear-gradient(135deg, #14b8a6 0%, #0d9488 100%)', 
-                  boxShadow: '0 4px 15px rgba(20, 184, 166, 0.3)',
-                  display: 'block',
-                  padding: '0.6rem 0.75rem',
-                  fontSize: '0.85rem'
+                  color: 'white',
+                  borderRadius: '4px',
+                  textDecoration: 'none',
+                  fontWeight: 'bold',
+                  fontSize: '0.72rem',
+                  boxShadow: '0 2px 8px rgba(20, 184, 166, 0.25)'
                 }}
               >
-                📲 Auto-Configure OwnTracks App
-              </a>
-            </div>
-            <div style={{ background: 'rgba(0,0,0,0.15)', padding: '0.75rem', borderRadius: 'var(--radius)', border: '1px solid hsl(var(--border) / 0.5)', marginBottom: '1rem' }}>
+                📲 Tap here to Auto-Configure OwnTracks App
+              </a> (or manually copy-paste the connection parameters below with Mode set to HTTP).<br />
+              3. <b>Configure iOS Settings (Critical for background updates):</b><br />
+              &nbsp;&nbsp;&nbsp;a. Open the iOS <b>Settings</b> app (or try this <a href="App-Prefs:root=Privacy&path=LOCATION" style={{ color: '#06b6d4', textDecoration: 'underline', fontWeight: 'bold' }}>Settings Link</a>).<br />
+              &nbsp;&nbsp;&nbsp;b. Scroll down to the bottom list of applications and tap <b>OwnTracks</b>.<br />
+              &nbsp;&nbsp;&nbsp;c. Tap <b>Location</b> and select <b>Always</b> (if "Always" is missing, open OwnTracks first and allow location once to trigger iOS prompts).<br />
+              &nbsp;&nbsp;&nbsp;d. Ensure <b>Background App Refresh</b>, <b>Motion & Fitness</b>, and <b>Cellular Data</b> are all toggled <b>ON</b>.<br />
+              4. <b>Configure Android Settings:</b> Go to Settings → Apps → OwnTracks → Permissions → Location → select <b>"Allow all the time"</b>.
+            </p>
+            <div style={{ background: 'rgba(0,0,0,0.15)', padding: '0.75rem', borderRadius: 'var(--radius)', border: '1px solid hsl(var(--border) / 0.5)', marginBottom: '0.5rem' }}>
               <div style={{ fontSize: '0.72rem', fontWeight: 'bold', color: '#14b8a6', marginBottom: '4px' }}>📋 OwnTracks HTTP Parameters (Manual Setup)</div>
               <div style={{ display: 'grid', gridTemplateColumns: '60px 1fr', gap: '4px', fontSize: '0.72rem', fontFamily: 'monospace' }}>
                 <span style={{ color: 'hsl(var(--text-muted))' }}>Mode:</span>
@@ -136,16 +145,6 @@ export default function CheckinTab({
                 <span style={{ wordBreak: 'break-all', color: '#06b6d4' }}>{`${window.location.origin}/api/owntracks?device_id=${activeCheckinUser}`}</span>
               </div>
             </div>
-            <p className="subtext" style={{ fontSize: '0.75rem', lineHeight: '1.5' }}>
-              1. Install <b>OwnTracks</b> from your app store.<br />
-              2. Tap the button above to auto-configure the app, or manually copy-paste the URL above into connection settings (Mode: HTTP).<br />
-              3. <b>Configure iOS Settings (Critical for background updates):</b><br />
-              &nbsp;&nbsp;&nbsp;a. Open the iOS <b>Settings</b> app (or try this <a href="App-Prefs:root=Privacy&path=LOCATION" style={{ color: '#06b6d4', textDecoration: 'underline', fontWeight: 'bold' }}>Settings Link</a>).<br />
-              &nbsp;&nbsp;&nbsp;b. Scroll down to the bottom list of applications and tap <b>OwnTracks</b>.<br />
-              &nbsp;&nbsp;&nbsp;c. Tap <b>Location</b> and select <b>Always</b> (if "Always" is missing, open OwnTracks first and allow location once to trigger iOS prompts).<br />
-              &nbsp;&nbsp;&nbsp;d. Ensure <b>Background App Refresh</b>, <b>Motion & Fitness</b>, and <b>Cellular Data</b> are all toggled <b>ON</b>.<br />
-              4. <b>Configure Android Settings:</b> Go to Settings → Apps → OwnTracks → Permissions → Location → select <b>"Allow all the time"</b>.
-            </p>
           </div>
         )}
 
@@ -187,28 +186,28 @@ export default function CheckinTab({
             <p className="subtext" style={{ lineHeight: '1.4', marginBottom: '1rem', color: 'hsl(var(--text-primary))' }}>
               Use the free <b>Overland GPS Tracker</b> app. It runs in the background and sends GPS updates even when your phone is locked. <i>Note: Available on US App Store only.</i>
             </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <a 
+            <p className="subtext" style={{ fontSize: '0.75rem', lineHeight: '1.6' }}>
+              1. Install <a href="https://apps.apple.com/us/app/overland-gps-tracker/id1452445362" target="_blank" rel="noopener noreferrer" style={{ color: '#06b6d4', textDecoration: 'underline', fontWeight: 'bold' }}>Overland GPS Tracker</a> (US iOS).<br />
+              2. <a 
                 href={`overland://setup?url=${encodeURIComponent(window.location.origin + '/api/overland')}&device_id=${activeCheckinUser}`}
-                className="btn-primary"
                 style={{ 
-                  textDecoration: 'none', 
-                  textAlign: 'center', 
+                  display: 'inline-block',
+                  margin: '4px 0',
+                  padding: '4px 10px',
                   background: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)', 
-                  boxShadow: '0 4px 15px rgba(6, 182, 212, 0.3)',
-                  display: 'block',
-                  padding: '0.75rem'
+                  color: 'white',
+                  borderRadius: '4px',
+                  textDecoration: 'none',
+                  fontWeight: 'bold',
+                  fontSize: '0.72rem',
+                  boxShadow: '0 2px 8px rgba(6, 182, 212, 0.25)'
                 }}
               >
-                📲 Auto-Configure Overland App
-              </a>
-              <p className="subtext" style={{ fontSize: '0.75rem', marginTop: '6px', lineHeight: '1.5' }}>
-                1. Install <a href="https://apps.apple.com/us/app/overland-gps-tracker/id1452445362" target="_blank" rel="noopener noreferrer" style={{ color: '#06b6d4', textDecoration: 'underline', fontWeight: 'bold' }}>Overland GPS Tracker</a> (US iOS).<br />
-                2. Tap the button above to auto-configure the app.<br />
-                3. Go to Settings → Overland → Location → select <b>"Always Allow"</b>.<br />
-                4. On the <b>"Tracker"</b> page, set the <b>Send Interval</b> to <b>1m</b>, then toggle tracking <b>ON</b>.
-              </p>
-            </div>
+                📲 Tap here to Auto-Configure Overland App
+              </a>.<br />
+              3. Go to Settings → Overland → Location → select <b>"Always Allow"</b>.<br />
+              4. On the <b>"Tracker"</b> page, set the <b>Send Interval</b> to <b>1m</b>, then toggle tracking <b>ON</b>.
+            </p>
           </div>
         )}
       </div>
