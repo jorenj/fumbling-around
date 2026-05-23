@@ -221,11 +221,8 @@ def fetch_canoe_river_route():
         
     print(f"Clipped river route from {len(stitched)} to {len(clipped)} coordinates (Everson to Ferndale).")
     
-    # Downsample the river route to keep it small
-    downsampled_river = clipped[::5]
-    if clipped[-1] not in downsampled_river:
-        downsampled_river.append(clipped[-1])
-        
+    # Keep the full river route for maximum fidelity
+    downsampled_river = list(clipped)
     return downsampled_river
 
 def main():
