@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { LOGISTICS_DATA } from '../lib/constants';
 
 export default function CheckinTab({
@@ -8,6 +9,8 @@ export default function CheckinTab({
   gpsStatus,
   lastGpsCoords
 }) {
+  const [selectedGpsApp, setSelectedGpsApp] = useState('owntracks');
+
   return (
     <div>
       {/* Identity Card */}
@@ -25,9 +28,9 @@ export default function CheckinTab({
               <option key={key} value={key}>{LOGISTICS_DATA[key].name} ({LOGISTICS_DATA[key].leg})</option>
             ))}
             <option disabled>──────────</option>
-            <option value="CAR_A">🚗 Car A (Support)</option>
+            <option value="CAR_A">🚗 Iver's Model Y (Support)</option>
             <option value="CYBERTRUCK">📐 Cybertruck (Support)</option>
-            <option value="CAR_C">🚙 Car C (Support)</option>
+            <option value="CAR_C">🚙 Sam's Bronco (Support)</option>
           </select>
         </div>
       </div>
@@ -37,35 +40,145 @@ export default function CheckinTab({
         border: '1px solid rgba(20, 184, 166, 0.35)', 
         background: 'linear-gradient(135deg, rgba(20, 184, 166, 0.08) 0%, rgba(6, 182, 212, 0.03) 100%)' 
       }}>
-        <h3 className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#14b8a6' }}>
+        <h3 className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#14b8a6', marginBottom: '0.75rem' }}>
           🔌 Option 1: Background GPS (Recommended)
         </h3>
-        <p className="subtext" style={{ lineHeight: '1.4', marginBottom: '1rem', color: 'hsl(var(--text-primary))' }}>
-          Use the free <b>Overland GPS Tracker</b> app. It runs in the background and sends GPS updates even when your phone is locked in your pocket.
-        </p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <a 
-            href={`overland://setup?url=${encodeURIComponent(window.location.origin + '/api/overland')}&device_id=${activeCheckinUser}`}
-            className="btn-primary"
-            style={{ 
-              textDecoration: 'none', 
-              textAlign: 'center', 
-              background: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)', 
-              boxShadow: '0 4px 15px rgba(6, 182, 212, 0.3)',
-              display: 'block',
-              padding: '0.75rem'
+
+        {/* Tab Selector */}
+        <div style={{ display: 'flex', borderBottom: '1px solid hsl(var(--border) / 0.5)', marginBottom: '1rem', gap: '2px', overflowX: 'auto' }}>
+          <button
+            onClick={() => setSelectedGpsApp('owntracks')}
+            style={{
+              padding: '0.5rem 0.65rem',
+              background: 'none',
+              border: 'none',
+              borderBottom: selectedGpsApp === 'owntracks' ? '2.5px solid #14b8a6' : '2.5px solid transparent',
+              color: selectedGpsApp === 'owntracks' ? '#14b8a6' : 'hsl(var(--text-muted))',
+              fontWeight: '600',
+              fontSize: '0.78rem',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              whiteSpace: 'nowrap'
             }}
           >
-            📲 Auto-Configure Overland App
-          </a>
-          <p className="subtext" style={{ fontSize: '0.75rem', marginTop: '6px', lineHeight: '1.5' }}>
-            1. Install <a href="https://apps.apple.com/us/app/overland-gps-tracker/id1452445362" target="_blank" rel="noopener noreferrer" style={{ color: '#06b6d4', textDecoration: 'underline', fontWeight: 'bold' }}>Overland GPS Tracker</a> from the iOS App Store.<br />
-            2. Select your identity above.<br />
-            3. Tap the button above to auto-configure the app.<br />
-            4. <b>iOS Settings:</b> Go to Settings → Overland → Location → select <b>"Always Allow"</b> (enables background tracking. Note: you may need to choose/trigger location settings twice to prompt/unlock the "Always Allow" option).<br />
-            5. <b>In Overland App:</b> On the <b>"Tracker"</b> page, set the <b>Send Interval</b> to <b>1m</b>, then in the "Settings" page slide the dot at the top of the screen to the right to enable settings changes, then toggle the tracking switch at the top to <b>ON</b>. 
-          </p>
+            🗺️ OwnTracks (Global)
+          </button>
+          <button
+            onClick={() => setSelectedGpsApp('traccar')}
+            style={{
+              padding: '0.5rem 0.65rem',
+              background: 'none',
+              border: 'none',
+              borderBottom: selectedGpsApp === 'traccar' ? '2.5px solid #14b8a6' : '2.5px solid transparent',
+              color: selectedGpsApp === 'traccar' ? '#14b8a6' : 'hsl(var(--text-muted))',
+              fontWeight: '600',
+              fontSize: '0.78rem',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            🛰️ Traccar (Global)
+          </button>
+          <button
+            onClick={() => setSelectedGpsApp('overland')}
+            style={{
+              padding: '0.5rem 0.65rem',
+              background: 'none',
+              border: 'none',
+              borderBottom: selectedGpsApp === 'overland' ? '2.5px solid #14b8a6' : '2.5px solid transparent',
+              color: selectedGpsApp === 'overland' ? '#14b8a6' : 'hsl(var(--text-muted))',
+              fontWeight: '600',
+              fontSize: '0.78rem',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            🔌 Overland (US iOS)
+          </button>
         </div>
+
+        {/* Tab Content: OwnTracks */}
+        {selectedGpsApp === 'owntracks' && (
+          <div>
+            <p className="subtext" style={{ lineHeight: '1.4', marginBottom: '1rem', color: 'hsl(var(--text-primary))' }}>
+              <b>OwnTracks</b> is free, open source, available globally (including Canada), and runs reliably in the background on both <b>iOS</b> and <b>Android</b>.
+            </p>
+            <div style={{ background: 'rgba(0,0,0,0.15)', padding: '0.75rem', borderRadius: 'var(--radius)', border: '1px solid hsl(var(--border) / 0.5)', marginBottom: '1rem' }}>
+              <div style={{ fontSize: '0.72rem', fontWeight: 'bold', color: '#14b8a6', marginBottom: '4px' }}>📋 OwnTracks HTTP Parameters</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '60px 1fr', gap: '4px', fontSize: '0.72rem', fontFamily: 'monospace' }}>
+                <span style={{ color: 'hsl(var(--text-muted))' }}>Mode:</span>
+                <span>HTTP</span>
+                <span style={{ color: 'hsl(var(--text-muted))' }}>URL:</span>
+                <span style={{ wordBreak: 'break-all', color: '#06b6d4' }}>{`${window.location.origin}/api/owntracks?device_id=${activeCheckinUser}`}</span>
+              </div>
+            </div>
+            <p className="subtext" style={{ fontSize: '0.75rem', lineHeight: '1.5' }}>
+              1. Install <b>OwnTracks</b> from your app store.<br />
+              2. Go to settings gear (iOS) or menu (Android) → <b>Connection</b>.<br />
+              3. Set <b>Mode</b> to <b>HTTP</b>.<br />
+              4. Copy and paste the <b>URL</b> shown above into the Host/URL field.<br />
+              5. Ensure location permissions are set to <b>"Always Allow"</b> and background refresh is enabled.
+            </p>
+          </div>
+        )}
+
+        {/* Tab Content: Traccar */}
+        {selectedGpsApp === 'traccar' && (
+          <div>
+            <p className="subtext" style={{ lineHeight: '1.4', marginBottom: '1rem', color: 'hsl(var(--text-primary))' }}>
+              <b>Traccar Client</b> is free, open source, lightweight, available globally, and works on both <b>iOS</b> and <b>Android</b>.
+            </p>
+            <div style={{ background: 'rgba(0,0,0,0.15)', padding: '0.75rem', borderRadius: 'var(--radius)', border: '1px solid hsl(var(--border) / 0.5)', marginBottom: '1rem' }}>
+              <div style={{ fontSize: '0.72rem', fontWeight: 'bold', color: '#14b8a6', marginBottom: '4px' }}>📋 Traccar Parameters</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: '4px', fontSize: '0.72rem', fontFamily: 'monospace' }}>
+                <span style={{ color: 'hsl(var(--text-muted))' }}>Server URL:</span>
+                <span style={{ wordBreak: 'break-all', color: '#06b6d4' }}>{`${window.location.origin}/api/traccar`}</span>
+                <span style={{ color: 'hsl(var(--text-muted))' }}>Device ID:</span>
+                <span style={{ color: '#14b8a6', fontWeight: 'bold' }}>{activeCheckinUser}</span>
+              </div>
+            </div>
+            <p className="subtext" style={{ fontSize: '0.75rem', lineHeight: '1.5' }}>
+              1. Install <b>Traccar Client</b> from your app store.<br />
+              2. Set <b>Server URL</b> to the address listed above.<br />
+              3. Set <b>Device Identifier</b> to your Device ID listed above.<br />
+              4. Set **Frequency** to **60** seconds.<br />
+              5. Toggle the <b>Service Status</b> switch at the top to <b>ON</b>.
+            </p>
+          </div>
+        )}
+
+        {/* Tab Content: Overland */}
+        {selectedGpsApp === 'overland' && (
+          <div>
+            <p className="subtext" style={{ lineHeight: '1.4', marginBottom: '1rem', color: 'hsl(var(--text-primary))' }}>
+              Use the free <b>Overland GPS Tracker</b> app. It runs in the background and sends GPS updates even when your phone is locked. <i>Note: Available on US App Store only.</i>
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <a 
+                href={`overland://setup?url=${encodeURIComponent(window.location.origin + '/api/overland')}&device_id=${activeCheckinUser}`}
+                className="btn-primary"
+                style={{ 
+                  textDecoration: 'none', 
+                  textAlign: 'center', 
+                  background: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)', 
+                  boxShadow: '0 4px 15px rgba(6, 182, 212, 0.3)',
+                  display: 'block',
+                  padding: '0.75rem'
+                }}
+              >
+                📲 Auto-Configure Overland App
+              </a>
+              <p className="subtext" style={{ fontSize: '0.75rem', marginTop: '6px', lineHeight: '1.5' }}>
+                1. Install <a href="https://apps.apple.com/us/app/overland-gps-tracker/id1452445362" target="_blank" rel="noopener noreferrer" style={{ color: '#06b6d4', textDecoration: 'underline', fontWeight: 'bold' }}>Overland GPS Tracker</a> (US iOS).<br />
+                2. Tap the button above to auto-configure the app.<br />
+                3. Go to Settings → Overland → Location → select <b>"Always Allow"</b>.<br />
+                4. On the <b>"Tracker"</b> page, set the <b>Send Interval</b> to <b>1m</b>, then toggle tracking <b>ON</b>.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
       
       {/* Option 2: Temporary Browser Broadcast */}

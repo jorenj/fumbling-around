@@ -163,6 +163,84 @@ app.post('/api/overland', (req, res) => {
   }
 });
 
+// GET/POST Traccar Client GPS API (OsmAnd Protocol)
+app.all('/api/traccar', (req, res) => {
+  try {
+    // Traccar Client sends values via query parameters (GET) or body parameters (POST)
+    const params = { ...req.query, ...req.body };
+    const lat = parseFloat(params.lat);
+    const lon = parseFloat(params.lon || params.lng);
+    const deviceId = params.id || params.deviceid || params.deviceId;
+
+    if (isNaN(lat) || isNaN(lon)) {
+      return res.status(400).json({ error: 'Missing or invalid lat or lon' });
+    }
+
+    if (!deviceId) {
+      return res.status(400).json({ error: 'Missing device identifier' });
+    }
+
+    const normalized = deviceId.toUpperCase();
+    if (!VALID_IDENTITIES.has(normalized)) {
+      return res.status(400).json({ error: 'Invalid member identity' });
+    }
+
+    const accuracy = params.accuracy ? parseFloat(params.accuracy) : (params.hdop ? parseFloat(params.hdop) * 5 : null);
+
+    let timestamp = Date.now();
+    if (params.timestamp) {
+      const parsedTs = parseFloat(params.timestamp);
+      if (!isNaN(parsedTs)) {
+        // If Unix epoch is in seconds (e.g. 10 digits), convert to ms
+        timestamp = parsedTs < 10000000000 ? parsedTs * 1000 : parsedTs;
+      } else {
+        timestamp = new Date(params.timestamp).getTime() || Date.now();
+      }
+    }
+
+    const updated = updateLocation(normalized, lat, lon, accuracy, timestamp);
+    res.json({ success: true, data: updated });
+  } catch (error) {
+    console.error('Error handling Traccar update:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// POST OwnTracks GPS API
+app.post('/api/owntracks', (req, res) => {
+  try {
+    const { lat, lon, acc, tst } = req.body;
+    let deviceId = req.query.device_id || req.body.tid; // fallback to tracker ID (tid)
+
+    if (typeof lat !== 'number' || typeof lon !== 'number') {
+      // OwnTracks occasionally sends non-location payloads (like deletions or tests)
+      // which we should ignore and return success (200) to keep the app working
+      if (req.body._type && req.body._type !== 'location') {
+        return res.json({ success: true, ignored: true });
+      }
+      return res.status(400).json({ error: 'Missing lat or lon' });
+    }
+
+    if (!deviceId) {
+      return res.status(400).json({ error: 'Missing device_id query parameter' });
+    }
+
+    const normalized = deviceId.toUpperCase();
+    if (!VALID_IDENTITIES.has(normalized)) {
+      return res.status(400).json({ error: 'Invalid member identity' });
+    }
+
+    const accuracy = typeof acc === 'number' ? acc : null;
+    const timestamp = typeof tst === 'number' ? tst * 1000 : Date.now();
+
+    const updated = updateLocation(normalized, lat, lon, accuracy, timestamp);
+    res.json({ success: true, data: updated });
+  } catch (error) {
+    console.error('Error handling OwnTracks update:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 // GET Race Results Proxy API
 const resultsCache = {};
 const CACHE_TTL_MS = 7000; // 7 seconds cache TTL
