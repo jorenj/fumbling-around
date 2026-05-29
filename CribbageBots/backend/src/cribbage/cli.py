@@ -15,6 +15,7 @@ def main():
     run_parser.add_argument("--p2", choices=BOT_REGISTRY.keys(), default="greedy", help="Bot type for Player 2")
     run_parser.add_argument("--games", type=int, default=10, help="Number of games to play")
     run_parser.add_argument("--verbose", action="store_true", help="Print detailed game events")
+    run_parser.add_argument("--no-time-limit", action="store_true", help="Disable the per-bot 50ms CPU budget enforcement")
 
     # API command
     api_parser = subparsers.add_parser("api", help="Start the FastAPI server")
@@ -29,7 +30,7 @@ def main():
         p1_id = args.p1.capitalize() + "Bot 1"
         p2_id = args.p2.capitalize() + "Bot 2"
         print(f"Starting tournament: {p1_id} vs {p2_id} ({args.games} games)")
-        run_tournament(p1_class, p2_class, num_games=args.games, verbose=args.verbose, p1_id=p1_id, p2_id=p2_id)
+        run_tournament(p1_class, p2_class, num_games=args.games, verbose=args.verbose, p1_id=p1_id, p2_id=p2_id, enforce_time_limit=not args.no_time_limit)
     
     elif args.command == "api":
         import uvicorn

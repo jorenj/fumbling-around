@@ -22,9 +22,10 @@ from cribbage.rules import (
     get_legal_pegging_moves, score_15s, score_pairs, score_runs,
     score_flush, score_nobs, score_hand, score_pegging
 )
-from cribbage.engine import GameEngine
+from cribbage.engine import GameEngine, PER_BOT_CPU_BUDGET_SECONDS
 from cribbage.bots.random_bot import RandomBot
 from cribbage.bots.greedy_bot import GreedyBot
+from cribbage.bots.slow_bot import SlowBot
 
 
 # ---------------------------------------------------------------------------
@@ -190,6 +191,108 @@ def test_winner_has_121_or_forfeit():
 
 
 # ---------------------------------------------------------------------------
+# Per-bot CPU budget enforcement
+# ---------------------------------------------------------------------------
+
+def test_slow_bot_forfeits_against_fast_bot():
+    """SlowBot burns ~30ms per discard; cumulative budget (50ms) is exhausted on
+    the second discard, so SlowBot forfeits and the opponent wins."""
+    slow = SlowBot("SlowBot")
+    fast = RandomBot("FastBot")
+    engine = GameEngine(slow, fast, verbose=True)
+    winner, log = engine.play_game()
+    assert winner == "FastBot", f"Expected FastBot to win by forfeit, got {winner}"
+    assert engine.end_reason.startswith("Forfeit:"), f"Expected forfeit, got {engine.end_reason}"
+    assert "CPU budget" in engine.end_reason, f"Expected CPU budget message, got {engine.end_reason}"
+    forfeit_events = [e for e in log if e["type"] == "forfeit"]
+    assert len(forfeit_events) == 1
+    assert forfeit_events[0]["player_id"] == "SlowBot"
+
+
+def test_slow_bot_does_not_forfeit_when_enforcement_off():
+    """Disabling enforcement lets SlowBot finish a game normally."""
+    slow = SlowBot("SlowBot")
+    fast = RandomBot("FastBot")
+    engine = GameEngine(slow, fast, verbose=False, enforce_time_limit=False)
+    winner, _ = engine.play_game()
+    assert winner in ("SlowBot", "FastBot"), f"Unexpected winner: {winner}"
+    assert not engine.end_reason.startswith("Forfeit:"), (
+        f"Should not forfeit with enforcement off, got {engine.end_reason}"
+    )
+
+
+def test_log_messages_include_timing():
+    """Every discard / peg_play / peg_go log entry includes elapsed_ms and
+    cpu_remaining_ms in event data and a (Xms, Yms remaining) suffix in message."""
+    p1 = RandomBot("RandomBot")
+    p2 = GreedyBot("GreedyBot")
+    engine = GameEngine(p1, p2, verbose=True)
+    _, log = engine.play_game()
+    timed_events = [e for e in log if e["type"] in ("discard", "peg_play", "peg_go")]
+    assert timed_events, "Expected discard/peg events in log"
+    for ev in timed_events:
+        assert "elapsed_ms" in ev["data"], f"Missing elapsed_ms in {ev}"
+        assert "cpu_remaining_ms" in ev["data"], f"Missing cpu_remaining_ms in {ev}"
+        assert "ms remaining)" in ev["message"], f"Missing timing suffix in: {ev['message']}"
+        assert ev["data"]["elapsed_ms"] >= 0
+        assert ev["data"]["cpu_remaining_ms"] <= PER_BOT_CPU_BUDGET_SECONDS * 1000
+
+
+def test_budget_resets_per_game():
+    """A fresh GameEngine starts each player at the full budget; the budget
+    is per-game, not per-process."""
+    p1 = RandomBot("R1")
+    p2 = RandomBot("R2")
+    engine_a = GameEngine(p1, p2, verbose=False)
+    assert engine_a.cpu_remaining["R1"] == PER_BOT_CPU_BUDGET_SECONDS
+    engine_a.play_game()
+    # After play, budget should be lower.
+    assert engine_a.cpu_remaining["R1"] < PER_BOT_CPU_BUDGET_SECONDS
+    # New engine = fresh budget.
+    engine_b = GameEngine(p1, p2, verbose=False)
+    assert engine_b.cpu_remaining["R1"] == PER_BOT_CPU_BUDGET_SECONDS
+
+
+def test_tournament_counts_forfeits(capsys):
+    """run_tournament tallies forfeits against the offending bot and prints
+    them in the summary line."""
+    from cribbage.tournament import run_tournament
+    from cribbage.bots.slow_bot import SlowBot
+    run_tournament(SlowBot, RandomBot, num_games=3, verbose=False, p1_id="Slow", p2_id="Fast")
+    out = capsys.readouterr().out
+    assert "Slow: 0 Wins, 0 Skunks, 3 Forfeits" in out, f"Forfeit count missing in:\n{out}"
+    # Winner row should not have a Forfeits suffix.
+    assert "Fast: 3 Wins" in out and "Forfeits" not in out.split("Fast: 3 Wins")[1].split("\n")[0]
+
+
+def test_remote_bot_skipped_by_class_name():
+    """The engine must not enforce the budget on RemoteBot (WebSocket bots).
+    We use a stub class named RemoteBot with a deliberately slow discard
+    to confirm enforcement is skipped by class-name check."""
+    import time as _time
+
+    class RemoteBot(RandomBot):
+        def discard(self, hand, is_dealer):
+            # Burn enough CPU to blow the budget if it were enforced.
+            end = _time.process_time() + 0.080
+            while _time.process_time() < end:
+                pass
+            return tuple(hand[:2])
+
+    slow_remote = RemoteBot("SlowRemote")
+    fast = RandomBot("Fast")
+    engine = GameEngine(slow_remote, fast, verbose=False)
+    # Single round shouldn't forfeit even though discard burned 80ms (>50ms budget).
+    # Use max_iterations-style early exit by playing one full round and checking state.
+    # Easiest: just play_game and confirm no Forfeit-by-budget occurred.
+    winner, _ = engine.play_game()
+    # Either bot can win; the assertion is that we did NOT forfeit on CPU.
+    assert "CPU budget" not in (engine.end_reason or ""), (
+        f"RemoteBot should be skipped from CPU enforcement, but got: {engine.end_reason}"
+    )
+
+
+# ---------------------------------------------------------------------------
 # Performance benchmark: 100 games must complete in <= 120 seconds
 # ---------------------------------------------------------------------------
 
@@ -237,6 +340,11 @@ if __name__ == "__main__":
         test_legal_moves_excludes_over_31,
         test_single_game_completes,
         test_winner_has_121_or_forfeit,
+        test_slow_bot_forfeits_against_fast_bot,
+        test_slow_bot_does_not_forfeit_when_enforcement_off,
+        test_log_messages_include_timing,
+        test_budget_resets_per_game,
+        test_remote_bot_skipped_by_class_name,
     ]
 
     print("Running unit tests...")

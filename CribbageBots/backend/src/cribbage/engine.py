@@ -1,4 +1,5 @@
 import threading
+import time
 from typing import Dict, List, Tuple
 from .models import Card, Deck, GameState, Phase, Rank
 from .rules import get_legal_pegging_moves, score_hand, score_pegging
@@ -6,8 +7,11 @@ from .bot import CribbagePlayer
 from .exceptions import IllegalMoveError, TimeoutError
 
 
+PER_BOT_CPU_BUDGET_SECONDS = 0.050
+
+
 class GameEngine:
-    def __init__(self, p1: CribbagePlayer, p2: CribbagePlayer, verbose: bool = True, on_event=None, manual_count: bool = False):
+    def __init__(self, p1: CribbagePlayer, p2: CribbagePlayer, verbose: bool = True, on_event=None, manual_count: bool = False, enforce_time_limit: bool = True):
         self.players = {p1.player_id: p1, p2.player_id: p2}
         self.deck = Deck()
         self.state = GameState(dealer_id=p1.player_id, non_dealer_id=p2.player_id)
@@ -20,6 +24,34 @@ class GameEngine:
         self.skunk = False
         self.game_log = []
         self.event_counter = 0
+        self.enforce_time_limit = enforce_time_limit
+        self.cpu_remaining = {p1.player_id: PER_BOT_CPU_BUDGET_SECONDS, p2.player_id: PER_BOT_CPU_BUDGET_SECONDS}
+
+    def _call_bot(self, player_id: str, method_name: str, *args, **kwargs):
+        """Invoke a bot decision method, charging CPU time against its budget.
+
+        Returns (result, elapsed_seconds). Always measures elapsed time so callers
+        can include it in log messages, but only enforces a forfeit when the
+        cumulative budget is exceeded and enforcement is enabled.
+        """
+        bot = self.players[player_id]
+        method = getattr(bot, method_name)
+        # Skip enforcement for non-native bots (e.g. RemoteBot over WebSocket).
+        # Identify by class name to avoid an import cycle with bots/remote_bot.py.
+        is_remote = type(bot).__name__ == "RemoteBot"
+        start = time.process_time()
+        result = method(*args, **kwargs)
+        elapsed = time.process_time() - start
+        if self.enforce_time_limit and not is_remote:
+            self.cpu_remaining[player_id] -= elapsed
+            if self.cpu_remaining[player_id] < 0:
+                used = PER_BOT_CPU_BUDGET_SECONDS - self.cpu_remaining[player_id]
+                raise TimeoutError(
+                    player_id,
+                    f"Exceeded {PER_BOT_CPU_BUDGET_SECONDS*1000:.0f}ms CPU budget "
+                    f"(used {used*1000:.1f}ms cumulative)"
+                )
+        return result, elapsed
 
     def log_event(self, event_type: str, player_id: str = None, message: str = "", data: dict = None):
         event = {
@@ -111,15 +143,19 @@ class GameEngine:
         self.state.phase = Phase.DISCARD
         for pid in [non_dealer, dealer]:
             # Pass a copy of the hand to prevent bots from mutating engine state
-            discards = self.players[pid].discard(list(hands[pid]), is_dealer=(pid == dealer))
-            
+            discards, elapsed = self._call_bot(pid, "discard", list(hands[pid]), is_dealer=(pid == dealer))
+
             if not all(any(c is h for h in hands[pid]) for c in discards) or len(discards) != 2 or len(set(discards)) != 2:
                 raise IllegalMoveError(pid, f"Invalid discard: {discards}")
-            
+
             self.state.crib.extend(discards)
             for card in discards:
                 hands[pid].remove(card)
-            self.log_event("discard", pid, f"{pid} discarded 2 cards.")
+            self.log_event(
+                "discard", pid,
+                f"{pid} discarded 2 cards. ({elapsed*1000:.2f}ms, {self.cpu_remaining[pid]*1000:.2f}ms remaining)",
+                {"elapsed_ms": elapsed * 1000, "cpu_remaining_ms": self.cpu_remaining[pid] * 1000},
+            )
 
         # 3. Cut
         self.state.phase = Phase.CUT
@@ -225,20 +261,23 @@ class GameEngine:
                 if max_iterations < 0:
                     return
 
-            bot = self.players[current_player]
             legal_moves = get_legal_pegging_moves(hands[current_player], self.state.current_count)
 
-            played_card = bot.peg(
+            played_card, elapsed = self._call_bot(
+                current_player,
+                "peg",
                 hands[current_player].copy(),
                 self.state.peg_history.copy(),
-                self.state.current_count
+                self.state.current_count,
             )
+            timing_suffix = f"({elapsed*1000:.2f}ms, {self.cpu_remaining[current_player]*1000:.2f}ms remaining)"
+            timing_data = {"elapsed_ms": elapsed * 1000, "cpu_remaining_ms": self.cpu_remaining[current_player] * 1000}
 
             if played_card is None:
                 if legal_moves:
                     raise IllegalMoveError(current_player, "Passed when legal moves exist")
                 passed.add(current_player)
-                self.log_event("peg_go", current_player, f"{current_player} says Go.")
+                self.log_event("peg_go", current_player, f"{current_player} says Go. {timing_suffix}", timing_data)
                 current_player = other(current_player)
             else:
                 if not any(played_card is m for m in legal_moves):
@@ -256,8 +295,8 @@ class GameEngine:
 
                 self.log_event(
                     "peg_play", current_player,
-                    f"{current_player} played {played_card} (Count: {self.state.current_count})",
-                    {"card": str(played_card), "count": self.state.current_count}
+                    f"{current_player} played {played_card} (Count: {self.state.current_count}) {timing_suffix}",
+                    {"card": str(played_card), "count": self.state.current_count, **timing_data}
                 )
 
                 pts, bd = score_pegging(self.state.peg_history)
