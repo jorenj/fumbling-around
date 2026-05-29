@@ -27,6 +27,7 @@ from ..rules import get_legal_pegging_moves, score_hand
 
 _RANK_ORDER = list(Rank)
 _RANK_INDEX = {r: i for i, r in enumerate(_RANK_ORDER)}
+_SUIT_INT = {s: i for i, s in enumerate(Suit)}
 
 
 def _crib_key(r1: Rank, r2: Rank) -> Tuple[Rank, Rank]:
@@ -69,15 +70,12 @@ def _build_crib_ev_table(num_samples: int = 1000, seed: int = 12345) -> Dict[Tup
     return table
 
 
-# Lazy-built once on first discard. Building is ~1–2 s in CPython; we don't
-# pay that at import time, only when a tournament actually starts.
-_CRIB_EV: Optional[Dict[Tuple[Rank, Rank], float]] = None
+# Built at import time. ~1–2 s in CPython. Done once per process, before
+# any GameEngine starts charging CPU against the bot's per-game budget.
+_CRIB_EV: Dict[Tuple[Rank, Rank], float] = _build_crib_ev_table()
 
 
 def _get_crib_ev() -> Dict[Tuple[Rank, Rank], float]:
-    global _CRIB_EV
-    if _CRIB_EV is None:
-        _CRIB_EV = _build_crib_ev_table()
     return _CRIB_EV
 
 
@@ -103,32 +101,165 @@ class LeifV2Bot(CribbagePlayer):
         crib_ev = _get_crib_ev()
         sign = 1.0 if is_dealer else -1.0
 
+        # Extract primitives for the 6 dealt cards once. CPython property
+        # access on Enum members is the dominant cost in score_hand.
+        n = len(hand)
+        h_val = [c.value for c in hand]
+        h_nrk = [c.numeric_rank for c in hand]
+        h_sut = [_SUIT_INT[c.suit] for c in hand]
+        h_jck = [c.rank == Rank.JACK for c in hand]
+
+        # Precompute primitives for the 46 unseen cards once.
         full_deck = [Card(r, s) for r in Rank for s in Suit]
         hand_set = set(hand)
         unseen = [c for c in full_deck if c not in hand_set]
-        # Cribbage always deals 6, so this should be 46.
-        assert len(unseen) == 46
+        unseen_v = tuple(c.value for c in unseen)
+        unseen_n = tuple(c.numeric_rank for c in unseen)
+        unseen_s = tuple(_SUIT_INT[c.suit] for c in unseen)
 
         best_score = float("-inf")
         best_throw: Optional[Tuple[Card, Card]] = None
 
-        for keep in combinations(hand, 4):
-            keep_list = list(keep)
-            keep_set = set(keep)
-            throw = tuple(c for c in hand if c not in keep_set)
+        for keep_idx in combinations(range(n), 4):
+            i0, i1, i2, i3 = keep_idx
+            kv0, kv1, kv2, kv3 = h_val[i0], h_val[i1], h_val[i2], h_val[i3]
+            kn0, kn1, kn2, kn3 = h_nrk[i0], h_nrk[i1], h_nrk[i2], h_nrk[i3]
+            ks0, ks1, ks2, ks3 = h_sut[i0], h_sut[i1], h_sut[i2], h_sut[i3]
+            kj0, kj1, kj2, kj3 = h_jck[i0], h_jck[i1], h_jck[i2], h_jck[i3]
+
+            # Keep-only 15s subset-sum DP. dp[s] = # subsets summing to s.
+            # We care about dp[s] for every s in 0..15 because, with the cut,
+            # subsets summing to (15 - cut_v) become 15s.
+            dp = [0] * 16
+            dp[0] = 1
+            for v in (kv0, kv1, kv2, kv3):
+                for s in range(15, v - 1, -1):
+                    dp[s] += dp[s - v]
+            keep_15s = dp[15] * 2  # subsets entirely within keep
+
+            # Keep-only pairs: count rank-equal among the 4 keep cards.
+            # Compare via numeric_rank (1:1 with rank for our purposes, no
+            # face-card ambiguity since J/Q/K all have distinct numeric_ranks).
+            keep_pair_pts = 0
+            if kn0 == kn1: keep_pair_pts += 2
+            if kn0 == kn2: keep_pair_pts += 2
+            if kn0 == kn3: keep_pair_pts += 2
+            if kn1 == kn2: keep_pair_pts += 2
+            if kn1 == kn3: keep_pair_pts += 2
+            if kn2 == kn3: keep_pair_pts += 2
+
+            # Keep is a 4-flush only if all 4 suits match.
+            keep_4flush = (ks0 == ks1 == ks2 == ks3)
+            keep_flush_suit = ks0 if keep_4flush else -1
+
+            # Jack suits in keep — used for nobs.
+            jack_suits = []
+            if kj0: jack_suits.append(ks0)
+            if kj1: jack_suits.append(ks1)
+            if kj2: jack_suits.append(ks2)
+            if kj3: jack_suits.append(ks3)
+
+            # Sorted numeric ranks of the 4 keep cards (used for 5-card runs).
+            sorted4 = sorted((kn0, kn1, kn2, kn3))
 
             total = 0
-            for cut in unseen:
-                pts, _ = score_hand(keep_list, cut, is_crib=False)
-                total += pts
+            for cut_i in range(46):
+                cv = unseen_v[cut_i]
+                cn = unseen_n[cut_i]
+                cs = unseen_s[cut_i]
+
+                # 15s: keep-only + subsets-of-keep-summing-to-(15-cv) joined with cut
+                score = keep_15s
+                if cv <= 15:
+                    score += dp[15 - cv] * 2
+
+                # Pairs: keep-internal + (cut, each_keep) pairs
+                score += keep_pair_pts
+                if cn == kn0: score += 2
+                if cn == kn1: score += 2
+                if cn == kn2: score += 2
+                if cn == kn3: score += 2
+
+                # Runs on 5 cards: sort once, then collapse duplicates,
+                # then walk for longest consecutive sequence with multiplier.
+                # Insertion of cn into sorted4 (length-4) into a length-5 sorted list.
+                if cn <= sorted4[0]:
+                    s5 = (cn, sorted4[0], sorted4[1], sorted4[2], sorted4[3])
+                elif cn <= sorted4[1]:
+                    s5 = (sorted4[0], cn, sorted4[1], sorted4[2], sorted4[3])
+                elif cn <= sorted4[2]:
+                    s5 = (sorted4[0], sorted4[1], cn, sorted4[2], sorted4[3])
+                elif cn <= sorted4[3]:
+                    s5 = (sorted4[0], sorted4[1], sorted4[2], cn, sorted4[3])
+                else:
+                    s5 = (sorted4[0], sorted4[1], sorted4[2], sorted4[3], cn)
+
+                # Collapse duplicates → distinct[], counts[].
+                distinct = [s5[0]]
+                counts = [1]
+                for k in range(1, 5):
+                    if s5[k] == distinct[-1]:
+                        counts[-1] += 1
+                    else:
+                        distinct.append(s5[k])
+                        counts.append(1)
+
+                # Longest consecutive sequence in distinct, multiplying counts.
+                best_len = 0
+                best_mult_sum = 0
+                cur_len = 1
+                cur_mult = counts[0]
+                for k in range(1, len(distinct)):
+                    if distinct[k] == distinct[k - 1] + 1:
+                        cur_len += 1
+                        cur_mult *= counts[k]
+                    else:
+                        if cur_len >= 3:
+                            if cur_len > best_len:
+                                best_len = cur_len
+                                best_mult_sum = cur_mult
+                            elif cur_len == best_len:
+                                best_mult_sum += cur_mult
+                        cur_len = 1
+                        cur_mult = counts[k]
+                if cur_len >= 3:
+                    if cur_len > best_len:
+                        best_len = cur_len
+                        best_mult_sum = cur_mult
+                    elif cur_len == best_len:
+                        best_mult_sum += cur_mult
+                if best_len >= 3:
+                    score += best_len * best_mult_sum
+
+                # Flush: 5-flush if cut suit matches keep suit, else 4-flush
+                # (allowed in non-crib hands).
+                if keep_4flush:
+                    if cs == keep_flush_suit:
+                        score += 5
+                    else:
+                        score += 4
+
+                # Nobs: a Jack in keep with the same suit as cut.
+                if jack_suits:
+                    for js in jack_suits:
+                        if js == cs:
+                            score += 1
+                            break
+
+                total += score
+
             hand_ev = total / 46.0
 
-            c_ev = crib_ev[_crib_key(throw[0].rank, throw[1].rank)]
+            # Throw is the 2 cards not in keep.
+            keep_set = {i0, i1, i2, i3}
+            throw_idx = [i for i in range(n) if i not in keep_set]
+            t0, t1 = hand[throw_idx[0]], hand[throw_idx[1]]
+            c_ev = crib_ev[_crib_key(t0.rank, t1.rank)]
             total_ev = hand_ev + sign * c_ev
 
             if total_ev > best_score:
                 best_score = total_ev
-                best_throw = throw
+                best_throw = (t0, t1)
 
         return best_throw
 
