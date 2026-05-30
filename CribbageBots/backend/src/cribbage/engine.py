@@ -1,3 +1,4 @@
+import inspect
 import threading
 import time
 from typing import Dict, List, Tuple
@@ -8,6 +9,34 @@ from .exceptions import IllegalMoveError, TimeoutError
 
 
 PER_BOT_CPU_BUDGET_SECONDS = 0.050
+
+
+# ── Introspection hardening ──────────────────────────────────────────
+# Strip GameEngine frames from inspect.stack() so that even if a bot
+# circumvents thread isolation, it cannot read engine locals.
+
+_introspection_hardened = False
+
+def _harden_introspection():
+    global _introspection_hardened
+    if _introspection_hardened:
+        return
+
+    _original_stack = inspect.stack
+
+    def _hardened_stack(*args, **kwargs):
+        frames = _original_stack(*args, **kwargs)
+        return [
+            fi for fi in frames
+            if not (
+                "self" in fi.frame.f_locals
+                and fi.frame.f_locals["self"].__class__.__name__ == "GameEngine"
+            )
+            and "hands" not in fi.frame.f_locals
+        ]
+
+    inspect.stack = _hardened_stack
+    _introspection_hardened = True
 
 
 class GameEngine:
@@ -26,22 +55,45 @@ class GameEngine:
         self.event_counter = 0
         self.enforce_time_limit = enforce_time_limit
         self.cpu_remaining = {p1.player_id: PER_BOT_CPU_BUDGET_SECONDS, p2.player_id: PER_BOT_CPU_BUDGET_SECONDS}
+        _harden_introspection()
 
     def _call_bot(self, player_id: str, method_name: str, *args, **kwargs):
-        """Invoke a bot decision method, charging CPU time against its budget.
+        """Invoke a bot method in an isolated thread to prevent stack inspection.
 
-        Returns (result, elapsed_seconds). Always measures elapsed time so callers
-        can include it in log messages, but only enforces a forfeit when the
-        cumulative budget is exceeded and enforcement is enabled.
+        Bot code running inside the thread cannot walk the call stack to reach
+        engine frames (hands, deck, scores, etc.) because those frames live on
+        a different thread's stack.
+
+        CPU time is measured per-thread via time.thread_time() for accuracy.
         """
         bot = self.players[player_id]
         method = getattr(bot, method_name)
         # Skip enforcement for non-native bots (e.g. RemoteBot over WebSocket).
         # Identify by class name to avoid an import cycle with bots/remote_bot.py.
         is_remote = type(bot).__name__ == "RemoteBot"
-        start = time.process_time()
-        result = method(*args, **kwargs)
-        elapsed = time.process_time() - start
+
+        result_box = [None]
+        error_box = [None]
+        cpu_box = [0.0]
+
+        def _run():
+            t0 = time.thread_time()
+            try:
+                result_box[0] = method(*args, **kwargs)
+            except Exception as e:
+                error_box[0] = e
+            cpu_box[0] = time.thread_time() - t0
+
+        t = threading.Thread(target=_run, daemon=True)
+        t.start()
+        t.join(timeout=30.0 if is_remote else 5.0)
+
+        if t.is_alive():
+            raise TimeoutError(player_id, "Bot timed out (wall-clock limit)")
+        if error_box[0] is not None:
+            raise error_box[0]
+
+        elapsed = cpu_box[0]
         if self.enforce_time_limit and not is_remote:
             self.cpu_remaining[player_id] -= elapsed
             if self.cpu_remaining[player_id] < 0:
@@ -51,7 +103,7 @@ class GameEngine:
                     f"Exceeded {PER_BOT_CPU_BUDGET_SECONDS*1000:.0f}ms CPU budget "
                     f"(used {used*1000:.1f}ms cumulative)"
                 )
-        return result, elapsed
+        return result_box[0], elapsed
 
     def log_event(self, event_type: str, player_id: str = None, message: str = "", data: dict = None):
         event = {
