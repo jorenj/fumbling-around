@@ -1,4 +1,6 @@
 import inspect
+import queue
+import random
 import threading
 import time
 from typing import Dict, List, Tuple
@@ -42,8 +44,18 @@ def _harden_introspection():
 class GameEngine:
     def __init__(self, p1: CribbagePlayer, p2: CribbagePlayer, verbose: bool = True, on_event=None, manual_count: bool = False, enforce_time_limit: bool = True):
         self.players = {p1.player_id: p1, p2.player_id: p2}
+        self.player_ids = list(self.players.keys())
         self.deck = Deck()
-        self.state = GameState(dealer_id=p1.player_id, non_dealer_id=p2.player_id)
+        
+        # Randomly assign the first dealer/crib
+        if random.choice([True, False]):
+            dealer_id = p1.player_id
+            non_dealer_id = p2.player_id
+        else:
+            dealer_id = p2.player_id
+            non_dealer_id = p1.player_id
+            
+        self.state = GameState(dealer_id=dealer_id, non_dealer_id=non_dealer_id)
         self.verbose = verbose
         self.on_event = on_event
         self.manual_count = manual_count
@@ -57,6 +69,35 @@ class GameEngine:
         self.cpu_remaining = {p1.player_id: PER_BOT_CPU_BUDGET_SECONDS, p2.player_id: PER_BOT_CPU_BUDGET_SECONDS}
         _harden_introspection()
 
+        # Start persistent worker threads for each player to reuse them across turns
+        self.bot_queues = {}
+        self.bot_threads = {}
+        for pid in self.player_ids:
+            q_in = queue.Queue()
+            q_out = queue.Queue()
+            self.bot_queues[pid] = (q_in, q_out)
+            
+            def _worker(pid_local=pid, qi=q_in, qo=q_out):
+                while True:
+                    task = qi.get()
+                    if task is None:
+                        break
+                    method_name, args, kwargs = task
+                    bot = self.players[pid_local]
+                    method = getattr(bot, method_name)
+                    t0 = time.thread_time()
+                    try:
+                        res = method(*args, **kwargs)
+                        elapsed = time.thread_time() - t0
+                        qo.put((res, None, elapsed))
+                    except Exception as e:
+                        elapsed = time.thread_time() - t0
+                        qo.put((None, e, elapsed))
+            
+            t = threading.Thread(target=_worker, daemon=True)
+            t.start()
+            self.bot_threads[pid] = t
+
     def _call_bot(self, player_id: str, method_name: str, *args, **kwargs):
         """Invoke a bot method in an isolated thread to prevent stack inspection.
 
@@ -67,33 +108,22 @@ class GameEngine:
         CPU time is measured per-thread via time.thread_time() for accuracy.
         """
         bot = self.players[player_id]
-        method = getattr(bot, method_name)
-        # Skip enforcement for non-native bots (e.g. RemoteBot over WebSocket).
-        # Identify by class name to avoid an import cycle with bots/remote_bot.py.
+        if hasattr(self, "state") and hasattr(self.state, "scores"):
+            bot.scores = dict(self.state.scores)
+            
         is_remote = type(bot).__name__ == "RemoteBot"
 
-        result_box = [None]
-        error_box = [None]
-        cpu_box = [0.0]
+        q_in, q_out = self.bot_queues[player_id]
+        q_in.put((method_name, args, kwargs))
 
-        def _run():
-            t0 = time.thread_time()
-            try:
-                result_box[0] = method(*args, **kwargs)
-            except Exception as e:
-                error_box[0] = e
-            cpu_box[0] = time.thread_time() - t0
-
-        t = threading.Thread(target=_run, daemon=True)
-        t.start()
-        t.join(timeout=30.0 if is_remote else 5.0)
-
-        if t.is_alive():
+        try:
+            res, err, elapsed = q_out.get(timeout=30.0 if is_remote else 5.0)
+        except queue.Empty:
             raise TimeoutError(player_id, "Bot timed out (wall-clock limit)")
-        if error_box[0] is not None:
-            raise error_box[0]
 
-        elapsed = cpu_box[0]
+        if err is not None:
+            raise err
+
         if self.enforce_time_limit and not is_remote:
             self.cpu_remaining[player_id] -= elapsed
             if self.cpu_remaining[player_id] < 0:
@@ -103,17 +133,21 @@ class GameEngine:
                     f"Exceeded {PER_BOT_CPU_BUDGET_SECONDS*1000:.0f}ms CPU budget "
                     f"(used {used*1000:.1f}ms cumulative)"
                 )
-        return result_box[0], elapsed
+        return res, elapsed
 
     def log_event(self, event_type: str, player_id: str = None, message: str = "", data: dict = None):
+        self.event_counter += 1
+        if not self.verbose and not self.on_event:
+            return
+            
         event = {
-            "id": self.event_counter,
+            "id": self.event_counter - 1,
             "type": event_type,
             "player_id": player_id,
             "message": message,
             "data": data or {},
-            "p1_score": self.state.scores.get(list(self.players.keys())[0], 0),
-            "p2_score": self.state.scores.get(list(self.players.keys())[1], 0),
+            "p1_score": self.state.scores.get(self.player_ids[0], 0),
+            "p2_score": self.state.scores.get(self.player_ids[1], 0),
             "cut_card": str(self.state.cut_card) if self.state.cut_card else None,
             "current_count": self.state.current_count,
             "pegged_cards": [{"player_id": p["player_id"], "card": str(p["card"])} for p in self.state.pegged_cards]
@@ -122,7 +156,6 @@ class GameEngine:
             self.game_log.append(event)
         if self.on_event:
             self.on_event(event)
-        self.event_counter += 1
 
     def award_points(self, player_id: str, points: int, reason: str):
         if points > 0:
@@ -133,43 +166,53 @@ class GameEngine:
                 self.winner = player_id
                 self.end_reason = "reached 121 points"
 
+    def cleanup(self):
+        """Terminate the persistent bot worker threads."""
+        if hasattr(self, "bot_queues"):
+            for pid in list(self.bot_queues.keys()):
+                q_in, q_out = self.bot_queues[pid]
+                q_in.put(None)
+
     def play_game(self) -> Tuple[str, List[dict]]:
-        p1_id, p2_id = list(self.players.keys())
-        self.state.scores = {p1_id: 0, p2_id: 0}
+        try:
+            p1_id, p2_id = self.player_ids
+            self.state.scores = {p1_id: 0, p2_id: 0}
 
-        for player in self.players.values():
-            player.reset()
+            for player in self.players.values():
+                player.reset()
 
-        self.log_event("game_start", message=f"Game started between {p1_id} and {p2_id}")
+            self.log_event("game_start", message=f"Game started between {p1_id} and {p2_id}")
 
-        while not self.winner:
-            try:
-                self.play_round()
-            except (IllegalMoveError, TimeoutError) as e:
-                # Correctly identify the offender and award the win to the opponent
-                offender = e.player_id
-                self.winner = p1_id if offender == p2_id else p2_id
-                self.end_reason = f"Forfeit: {e.message}"
-                self.log_event("forfeit", offender, f"{offender} forfeited: {e.message}")
-                break
-            except Exception as e:
-                # Catch-all for unexpected internal engine errors
-                # We do NOT award a win on system errors to prevent bots from winning via crashes
-                self.winner = None
-                self.end_reason = f"System Error: {str(e)}"
-                self.log_event("forfeit", None, f"Unexpected internal error: {e}")
-                return None, self.game_log
+            while not self.winner:
+                try:
+                    self.play_round()
+                except (IllegalMoveError, TimeoutError) as e:
+                    # Correctly identify the offender and award the win to the opponent
+                    offender = e.player_id
+                    self.winner = p1_id if offender == p2_id else p2_id
+                    self.end_reason = f"Forfeit: {e.message}"
+                    self.log_event("forfeit", offender, f"{offender} forfeited: {e.message}")
+                    break
+                except Exception as e:
+                    # Catch-all for unexpected internal engine errors
+                    # We do NOT award a win on system errors to prevent bots from winning via crashes
+                    self.winner = None
+                    self.end_reason = f"System Error: {str(e)}"
+                    self.log_event("forfeit", None, f"Unexpected internal error: {e}")
+                    return None, self.game_log
 
-            # Switch dealer
-            self.state.dealer_id, self.state.non_dealer_id = self.state.non_dealer_id, self.state.dealer_id
+                # Switch dealer
+                self.state.dealer_id, self.state.non_dealer_id = self.state.non_dealer_id, self.state.dealer_id
 
-        # Determine if it was a skunk
-        loser_id = p1_id if self.winner == p2_id else p2_id
-        if self.state.scores.get(loser_id, 0) <= 90:
-            self.skunk = True
+            # Determine if it was a skunk
+            loser_id = p1_id if self.winner == p2_id else p2_id
+            if self.state.scores.get(loser_id, 0) <= 90:
+                self.skunk = True
 
-        self.log_event("game_over", self.winner, f"{self.winner} wins!", {"skunk": self.skunk})
-        return self.winner, self.game_log
+            self.log_event("game_over", self.winner, f"{self.winner} wins!", {"skunk": self.skunk})
+            return self.winner, self.game_log
+        finally:
+            self.cleanup()
 
     def play_round(self):
         self.deck.reset()

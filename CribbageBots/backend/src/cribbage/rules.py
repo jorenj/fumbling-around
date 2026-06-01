@@ -93,7 +93,7 @@ def score_nobs(hand: List[Card], cut_card: Card) -> int:
             return 1
     return 0
 
-def score_hand(hand: List[Card], cut_card: Card, is_crib: bool = False) -> Tuple[int, str]:
+def score_hand(hand: List[Card], cut_card: Card, is_crib: bool = False, return_breakdown: bool = True) -> Tuple[int, str]:
     """
     Scores a 4-card hand plus the cut card.
     Returns (total_score, breakdown_string).
@@ -107,6 +107,9 @@ def score_hand(hand: List[Card], cut_card: Card, is_crib: bool = False) -> Tuple
     nobs = score_nobs(hand, cut_card)
     
     total = p15 + pairs + runs + flush + nobs
+    if not return_breakdown:
+        return total, ""
+        
     breakdown = []
     if p15 > 0: breakdown.append(f"15s: {p15}")
     if pairs > 0: breakdown.append(f"Pairs: {pairs}")

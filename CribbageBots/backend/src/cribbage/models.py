@@ -50,6 +50,9 @@ class Card:
     def __str__(self):
         return f"{self.rank.value}{self.suit.value}"
 
+# Pre-create all 52 unique Card instances to avoid recreating them in every round
+ALL_52_CARDS = [Card(rank=r, suit=s) for r in Rank for s in Suit]
+
 class Deck:
     def __init__(self):
         self._rng = random.SystemRandom()
@@ -67,7 +70,7 @@ class Deck:
         return dealt
 
     def reset(self):
-        self.cards = [Card(rank=r, suit=s) for r in Rank for s in Suit]
+        self.cards = list(ALL_52_CARDS)
         self.shuffle()
 
 # Enums for Game State tracking

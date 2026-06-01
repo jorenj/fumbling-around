@@ -103,7 +103,7 @@ class GeminiFlashSimpleBot(CribbagePlayer):
             # 1. Exact Hand EV (Score the 4-card keep against all 46 possible cuts)
             hand_total_score = 0
             for cut in remaining_deck:
-                score, _ = score_hand(keep_list, cut, is_crib=False)
+                score, _ = score_hand(keep_list, cut, is_crib=False, return_breakdown=False)
                 hand_total_score += score
             hand_ev = hand_total_score / len(remaining_deck)
             
