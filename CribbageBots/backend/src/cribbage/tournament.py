@@ -2,7 +2,7 @@ from typing import Type
 from .engine import GameEngine
 from .bot import CribbagePlayer
 
-def run_tournament(p1_class: Type[CribbagePlayer], p2_class: Type[CribbagePlayer], num_games: int = 10, verbose: bool = False, p1_id: str = "Player 1", p2_id: str = "Player 2", enforce_time_limit: bool = True):
+def run_tournament(p1_class: Type[CribbagePlayer], p2_class: Type[CribbagePlayer], num_games: int = 10, verbose: bool = False, outcome: bool = False, p1_id: str = "Player 1", p2_id: str = "Player 2", enforce_time_limit: bool = True):
     p1 = p1_class(p1_id)
     p2 = p2_class(p2_id)
 
@@ -42,6 +42,10 @@ def run_tournament(p1_class: Type[CribbagePlayer], p2_class: Type[CribbagePlayer
                 print(f"[{event['type'].upper()}] {event['player_id'] or ''} - {event['message']}")
             print(f"Game {i+1} Winner: {winner} (Skunk: {engine.skunk})")
             print(f"Final Score: P1 {engine.state.scores.get(p1_id, 0)} - P2 {engine.state.scores.get(p2_id, 0)}")
+        elif outcome:
+            p1_score = engine.state.scores.get(p1_id, 0)
+            p2_score = engine.state.scores.get(p2_id, 0)
+            print(f"Game {i+1:04d} | Winner: {winner:<15} ({p1_id}: {p1_score:<3} - {p2_id}: {p2_score:<3})")
             
         p1_deals_first = not p1_deals_first
 
@@ -58,4 +62,4 @@ def run_tournament(p1_class: Type[CribbagePlayer], p2_class: Type[CribbagePlayer
 if __name__ == "__main__":
     from .bots.random_bot import RandomBot
     from .bots.greedy_bot import GreedyBot
-    run_tournament(RandomBot, GreedyBot, num_games=10, verbose=False)
+    run_tournament(RandomBot, GreedyBot, num_games=10, verbose=False, outcome=True)
