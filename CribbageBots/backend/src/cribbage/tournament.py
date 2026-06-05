@@ -42,6 +42,10 @@ def run_tournament(p1_class: Type[CribbagePlayer], p2_class: Type[CribbagePlayer
                 print(f"[{event['type'].upper()}] {event['player_id'] or ''} - {event['message']}")
             print(f"Game {i+1} Winner: {winner} (Skunk: {engine.skunk})")
             print(f"Final Score: P1 {engine.state.scores.get(p1_id, 0)} - P2 {engine.state.scores.get(p2_id, 0)}")
+        else:
+            p1_score = engine.state.scores.get(p1_id, 0)
+            p2_score = engine.state.scores.get(p2_id, 0)
+            print(f"Game {i+1:04d} | Winner: {winner:<15} ({p1_id}: {p1_score:<3} - {p2_id}: {p2_score:<3})")
             
         p1_deals_first = not p1_deals_first
 
