@@ -19,3 +19,6 @@ frontend/dist/
 .vscode/
 .idea/
 .antigravity/
+
+# Scratch
+CribbageBots/backend/scratch/simulate_hail_mary.py
