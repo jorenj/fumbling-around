@@ -7,6 +7,8 @@ from .leifv1_bot import LeifV1Bot
 from .leifv2_bot import LeifV2Bot
 from .leifv3_bot import LeifV3Bot
 from .leifv4_bot import LeifV4Bot
+from .leifv4_5_bot import LeifV4_5Bot
+from .leifv5_bot import LeifV5Bot
 from .slow_bot import SlowBot
 from .joren_bot_v3 import JorenBotV3
 from .joren_bot_v4 import JorenBotV4
@@ -20,6 +22,8 @@ BOT_REGISTRY = {
     "leifv2": {"class": LeifV2Bot, "label": "LeifV2Bot"},
     "leifv3": {"class": LeifV3Bot, "label": "LeifV3Bot"},
     "leifv4": {"class": LeifV4Bot, "label": "LeifV4Bot"},
+    "leifv4_5": {"class": LeifV4_5Bot, "label": "LeifV4_5Bot"},
+    "leifv5": {"class": LeifV5Bot, "label": "LeifV5Bot"},
     "slow": {"class": SlowBot, "label": "SlowBot"},
     "joren_v3": {"class": JorenBotV3, "label": "JorenBot_v3"},
     "joren_v4": {"class": JorenBotV4, "label": "JorenBot_v4"},
@@ -35,6 +39,8 @@ __all__ = [
     "LeifV2Bot",
     "LeifV3Bot",
     "LeifV4Bot",
+    "LeifV4_5Bot",
+    "LeifV5Bot",
     "SlowBot",
     "JorenBotV3",
     "JorenBotV4",
