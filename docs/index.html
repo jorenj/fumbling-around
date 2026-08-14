@@ -104,6 +104,24 @@
       line-height: 1.35;
     }
 
+    .sidebar-footer {
+      padding: 10px 18px;
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(18, 22, 30, 0.4);
+      flex-shrink: 0;
+    }
+
+    .version-tag {
+      font-size: 0.68rem;
+      color: var(--text-subtle);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+      letter-spacing: 0.2px;
+      opacity: 0.75;
+    }
+
     /* Search Box */
     .search-container {
       padding: 14px 18px;
@@ -875,6 +893,11 @@
         </div>
       </div>
     </div>
+
+    <!-- Subtle Footer Version Indicator -->
+    <div class="sidebar-footer">
+      <span class="version-tag" id="appVersion">v2.5 • Aug 14, 2026</span>
+    </div>
   </aside>
 
   <!-- Main Viewport Canvas -->
@@ -980,6 +1003,12 @@
         
         treesData = await metaRes.json();
         searchIndex = await indexRes.json();
+
+        // Update version indicator from build metadata
+        if (treesData[0] && treesData[0].build_version) {
+          const vEl = document.getElementById('appVersion');
+          if (vEl) vEl.textContent = treesData[0].build_version;
+        }
 
         renderTreeCards();
         setupEventListeners();

@@ -19,6 +19,7 @@ import os
 import re
 import json
 import math
+import datetime
 import fitz  # PyMuPDF
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -617,7 +618,8 @@ def main():
             'skipped_empty': tile_stats['skipped_empty'],
             'tile_pdf': f"tiles/{tree_id}_printable_tiles.pdf",
             'svg_file': f"svg/{tree_id}.svg",
-            'tiles': tile_stats['tiles']
+            'tiles': tile_stats['tiles'],
+            'build_version': f"v2.5 • {datetime.datetime.now().strftime('%b %d, %Y %H:%M')}"
         })
 
     # Save search index
