@@ -2,11 +2,14 @@
 """
 build_site.py - Generate all website assets for Grannie's Family Trees website.
 
-Features:
-  - 100% pure crisp white background (no printer ink waste on background tint).
-  - Page 1 Master Assembly Guide Sheet with complete visual grid map showing where every tile fits and which spots are blank.
-  - Clear alphanumeric Tile Identifiers (e.g. [ TILE B-3 ]) on every sheet and margin connector labels.
-  - Empty sheet elimination: skips tiles with no names/connectors (saving 35-50% paper).
+Layout & Printing specs:
+  - 0.25" physical margins (18 pt) for maximum printable area per letter sheet.
+  - 0.25" overlap (18 pt) matching the 0.25" margin for natural shingle layering.
+  - Clean Bottom and Right edges (free of text/labels) for seamless shingle overlapping.
+  - Pure crisp white background (ink-saving, zero background tint).
+  - Page 1 Master Assembly Guide Sheet with complete visual grid map.
+  - Prominent Tile Identifiers (e.g. [ TILE B-3 ]) in the top header bar.
+  - Automatic elimination of empty whitespace tiles (saves 35-50% paper).
 """
 
 import os
@@ -208,16 +211,18 @@ def get_col_letter(col_idx: int) -> str:
 def generate_printable_tiles(doc, tree_info, out_pdf_path):
     """
     Generate Letter landscape tiled PDF at 1:1 original scale with pure white background.
-    - Page 1: Master Assembly Guide & Visual Grid Map
-    - Pages 2+: Non-empty tiles with clear Tile Identifiers (e.g. [ TILE B-3 ]) and edge connectors
+    - 0.25" margins (18 pt) and 0.25" overlap (18 pt) for natural shingling.
+    - Clean Bottom and Right edges with no text or labels.
+    - Page 1: Master Assembly Guide & Visual Grid Map.
+    - Pages 2+: Non-empty tiles with clear Tile Identifiers (e.g. [ TILE B-3 ]).
     """
     src_page = doc[0]
 
     LETTER_W = 792   # 11 inches in points (landscape)
     LETTER_H = 612   # 8.5 inches in points
-    MARGIN = 36      # 0.5 inch margin
-    HEADER_H = 26    # 26 pt header bar
-    OVERLAP = 36     # 0.5 inch overlap between tiles
+    MARGIN = 18      # 0.25 inch margin (18 pt)
+    HEADER_H = 22    # 22 pt header bar
+    OVERLAP = 18     # 0.25 inch overlap (18 pt) matching margin for clean shingling
 
     usable_w = LETTER_W - 2 * MARGIN
     usable_h = LETTER_H - 2 * MARGIN - HEADER_H
@@ -300,16 +305,16 @@ def generate_printable_tiles(doc, tree_info, out_pdf_path):
     guide_page.draw_rect(guide_page.rect, color=(1, 1, 1), fill=(1, 1, 1))
 
     # Header Box
-    header_box = fitz.Rect(MARGIN, MARGIN, LETTER_W - MARGIN, MARGIN + 46)
+    header_box = fitz.Rect(MARGIN, MARGIN, LETTER_W - MARGIN, MARGIN + 42)
     guide_page.draw_rect(header_box, color=(0.15, 0.35, 0.55), fill=(0.94, 0.97, 1.0), width=1.5)
-    guide_page.insert_text(fitz.Point(MARGIN + 14, MARGIN + 20), 'MASTER ASSEMBLY GUIDE & GRID MAP', fontsize=13, fontname='hebo', color=(0.1, 0.25, 0.45))
-    guide_page.insert_text(fitz.Point(MARGIN + 14, MARGIN + 36), f"{tree_info['name']}   |   Total Size: {tree_info['width_in']}\" × {tree_info['height_in']}\"   |   {total_active_pages} Sheets to Print ({skipped_count} Empty Omitted)", fontsize=8.5, color=(0.3, 0.4, 0.5))
+    guide_page.insert_text(fitz.Point(MARGIN + 12, MARGIN + 18), 'MASTER ASSEMBLY GUIDE & GRID MAP', fontsize=13, fontname='hebo', color=(0.1, 0.25, 0.45))
+    guide_page.insert_text(fitz.Point(MARGIN + 12, MARGIN + 33), f"{tree_info['name']}   |   Total Size: {tree_info['width_in']}\" × {tree_info['height_in']}\"   |   {total_active_pages} Sheets to Print ({skipped_count} Empty Omitted)", fontsize=8.5, color=(0.3, 0.4, 0.5))
 
     # Grid Dimensions
-    grid_top = MARGIN + 62
-    grid_left = MARGIN + 28
-    grid_width = LETTER_W - 2 * MARGIN - 42
-    grid_bottom = LETTER_H - MARGIN - 72
+    grid_top = MARGIN + 56
+    grid_left = MARGIN + 26
+    grid_width = LETTER_W - 2 * MARGIN - 38
+    grid_bottom = LETTER_H - MARGIN - 64
     grid_height = grid_bottom - grid_top
 
     cell_w = grid_width / n_cols
@@ -318,13 +323,13 @@ def generate_printable_tiles(doc, tree_info, out_pdf_path):
     # Top Column Headers (A, B, C...)
     for c in range(n_cols):
         col_letter = get_col_letter(c)
-        cx = grid_left + c * cell_w + cell_w / 2 - (6 if len(col_letter) == 1 else 10)
-        guide_page.insert_text(fitz.Point(cx, grid_top - 6), col_letter, fontsize=8.5, fontname='hebo', color=(0.2, 0.35, 0.5))
+        cx = grid_left + c * cell_w + cell_w / 2 - (5 if len(col_letter) == 1 else 9)
+        guide_page.insert_text(fitz.Point(cx, grid_top - 5), col_letter, fontsize=8.5, fontname='hebo', color=(0.2, 0.35, 0.5))
 
     # Left Row Headers (R1, R2, R3...)
     for r in range(n_rows):
         ry = grid_top + r * cell_h + cell_h / 2 + 4
-        guide_page.insert_text(fitz.Point(grid_left - 24, ry), f"R{r+1}", fontsize=8, fontname='hebo', color=(0.2, 0.35, 0.5))
+        guide_page.insert_text(fitz.Point(grid_left - 22, ry), f"R{r+1}", fontsize=8, fontname='hebo', color=(0.2, 0.35, 0.5))
 
     # Draw Grid Cells
     for r in range(n_rows):
@@ -336,10 +341,8 @@ def generate_printable_tiles(doc, tree_info, out_pdf_path):
 
             if (c, r) in active_map:
                 s_num = active_map[(c, r)]
-                # Active cell: pleasant light blue fill with dark blue border
                 guide_page.draw_rect(cell_rect, color=(0.25, 0.55, 0.8), fill=(0.92, 0.96, 1.0), width=1.2)
                 
-                # Dynamic font sizing based on grid column count
                 font_id = 9 if n_cols <= 8 else 7.5
                 font_sheet = 7.5 if n_cols <= 8 else 6.0
                 
@@ -347,23 +350,22 @@ def generate_printable_tiles(doc, tree_info, out_pdf_path):
                 if cell_h > 26:
                     guide_page.insert_text(fitz.Point(rx + 4, ry + (26 if cell_h > 40 else 22)), f"Sheet #{s_num}", fontsize=font_sheet, color=(0.15, 0.5, 0.25))
             else:
-                # Omitted empty cell: grayed out with hash/blank indicator
                 guide_page.draw_rect(cell_rect, color=(0.84, 0.84, 0.84), fill=(0.96, 0.96, 0.96), width=0.5)
                 font_id = 8 if n_cols <= 8 else 6.5
                 guide_page.insert_text(fitz.Point(rx + 4, ry + (14 if cell_h > 40 else 12)), tile_id, fontsize=font_id, color=(0.65, 0.65, 0.65))
                 if cell_h > 26:
                     guide_page.insert_text(fitz.Point(rx + 4, ry + (25 if cell_h > 40 else 21)), "—", fontsize=8, color=(0.7, 0.7, 0.7))
 
-    # Bottom Instructions Box
-    inst_box = fitz.Rect(MARGIN, LETTER_H - MARGIN - 60, LETTER_W - MARGIN, LETTER_H - MARGIN)
+    # Bottom Instructions Box (Clear Shingle Overlap Directions)
+    inst_box = fitz.Rect(MARGIN, LETTER_H - MARGIN - 54, LETTER_W - MARGIN, LETTER_H - MARGIN)
     guide_page.draw_rect(inst_box, color=(0.8, 0.8, 0.8), fill=(0.98, 0.98, 0.98))
-    guide_page.insert_text(fitz.Point(MARGIN + 10, LETTER_H - MARGIN - 44), 'HOW TO ASSEMBLE YOUR FAMILY TREE:', fontsize=8.5, fontname='hebo', color=(0.2, 0.2, 0.2))
-    guide_page.insert_text(fitz.Point(MARGIN + 10, LETTER_H - MARGIN - 31), '1. Match the Tile Identifier in the top header of each printed sheet (e.g. [ TILE B-3 ]) to its position on the grid above.', fontsize=7.5, color=(0.35, 0.35, 0.35))
-    guide_page.insert_text(fitz.Point(MARGIN + 10, LETTER_H - MARGIN - 19), '2. Gray cells marked "—" are empty whitespace in the chart and were omitted to save paper. Leave those positions blank.', fontsize=7.5, color=(0.35, 0.35, 0.35))
-    guide_page.insert_text(fitz.Point(MARGIN + 10, LETTER_H - MARGIN - 7), '3. Overlap adjacent sheets by 0.5 inches along the borders and tape or pin them together row-by-row.', fontsize=7.5, color=(0.35, 0.35, 0.35))
+    guide_page.insert_text(fitz.Point(MARGIN + 10, LETTER_H - MARGIN - 38), 'HOW TO ASSEMBLE (ZERO-CUTTING SHINGLE OVERLAP):', fontsize=8.5, fontname='hebo', color=(0.2, 0.2, 0.2))
+    guide_page.insert_text(fitz.Point(MARGIN + 10, LETTER_H - MARGIN - 26), '1. Match the Tile Identifier in the top header (e.g. [ TILE B-3 ]) to its grid position above.', fontsize=7.5, color=(0.35, 0.35, 0.35))
+    guide_page.insert_text(fitz.Point(MARGIN + 10, LETTER_H - MARGIN - 15), '2. Shingle from top-left: overlap each sheet 0.25" over the clean bottom/right edge of its neighbor and tape down.', fontsize=7.5, color=(0.35, 0.35, 0.35))
+    guide_page.insert_text(fitz.Point(MARGIN + 10, LETTER_H - MARGIN - 4), '3. Gray cells marked "—" are empty space with no family members and were omitted to save paper.', fontsize=7.5, color=(0.35, 0.35, 0.35))
 
     # =========================================================================
-    # PAGES 2+: INDIVIDUAL ACTIVE TILES WITH CLEAR IDENTIFIERS
+    # PAGES 2+: INDIVIDUAL ACTIVE TILES (CLEAN BOTTOM & RIGHT FOR SHINGLING)
     # =========================================================================
     for idx, tile in enumerate(active_tiles):
         col = tile['col']
@@ -380,21 +382,21 @@ def generate_printable_tiles(doc, tree_info, out_pdf_path):
         # Draw pure white background on entire letter sheet
         out_page.draw_rect(out_page.rect, color=(1, 1, 1), fill=(1, 1, 1))
 
-        # Header background bar
+        # Compact Header Bar at top
         header_rect = fitz.Rect(MARGIN, MARGIN, LETTER_W - MARGIN, MARGIN + HEADER_H)
         out_page.draw_rect(header_rect, color=(0.2, 0.35, 0.5), fill=(0.95, 0.97, 1.0))
         
         # High-contrast prominent Tile ID badge on left
-        badge_rect = fitz.Rect(MARGIN + 4, MARGIN + 4, MARGIN + 85, MARGIN + HEADER_H - 4)
+        badge_rect = fitz.Rect(MARGIN + 3, MARGIN + 3, MARGIN + 80, MARGIN + HEADER_H - 3)
         out_page.draw_rect(badge_rect, color=(0.15, 0.35, 0.55), fill=(0.15, 0.35, 0.55))
-        out_page.insert_text(fitz.Point(MARGIN + 10, MARGIN + HEADER_H - 8), f"TILE {tile_id}", fontsize=9.5, fontname='hebo', color=(1, 1, 1))
+        out_page.insert_text(fitz.Point(MARGIN + 8, MARGIN + HEADER_H - 7), f"TILE {tile_id}", fontsize=9, fontname='hebo', color=(1, 1, 1))
 
         # Sheet Number & Tree Title
-        out_page.insert_text(fitz.Point(MARGIN + 95, MARGIN + HEADER_H - 8), f"Sheet {idx+1} of {total_active_pages}  (Page {idx+2} of {total_active_pages+1})   |   {tree_info['name']}", fontsize=8.5, color=(0.2, 0.2, 0.2))
+        out_page.insert_text(fitz.Point(MARGIN + 90, MARGIN + HEADER_H - 7), f"Sheet {idx+1} of {total_active_pages}  (Page {idx+2} of {total_active_pages+1})   |   {tree_info['name']}", fontsize=8, color=(0.2, 0.2, 0.2))
 
         # Grid Coordinates on right
         coord_str = f"Col {get_col_letter(col)} of {n_cols} (Col {col+1}), Row {row+1} of {n_rows}"
-        out_page.insert_text(fitz.Point(LETTER_W - MARGIN - 185, MARGIN + HEADER_H - 8), coord_str, fontsize=8, color=(0.35, 0.35, 0.35))
+        out_page.insert_text(fitz.Point(LETTER_W - MARGIN - 180, MARGIN + HEADER_H - 7), coord_str, fontsize=7.5, color=(0.35, 0.35, 0.35))
 
         # Tile drawing area
         dest_w = clip_x1 - clip_x0
@@ -408,19 +410,8 @@ def generate_printable_tiles(doc, tree_info, out_pdf_path):
         # Copy vector content from modified white-background PDF
         out_page.show_pdf_page(dest_rect, doc, 0, clip=clip_rect)
 
-        # Border around tile
-        out_page.draw_rect(dest_rect, color=(0.7, 0.7, 0.7), width=0.5)
-
-        # Edge connector guides along margins (helps Grannie align sheets effortlessly)
-        top_neighbor = f"{get_col_letter(col)}-{row}" if row > 0 else "[ TOP BORDER ]"
-        bottom_neighbor = f"{get_col_letter(col)}-{row+2}" if row < n_rows - 1 else "[ BOTTOM BORDER ]"
-        left_neighbor = f"{get_col_letter(col-1)}-{row+1}" if col > 0 else "[ LEFT BORDER ]"
-        right_neighbor = f"{get_col_letter(col+1)}-{row+1}" if col < n_cols - 1 else "[ RIGHT BORDER ]"
-
-        # Margin hints
-        out_page.insert_text(fitz.Point(MARGIN + dest_w / 2 - 40, LETTER_H - MARGIN / 2 + 3), f"▼ Bottom: {bottom_neighbor}", fontsize=6.5, color=(0.55, 0.55, 0.55))
-        out_page.insert_text(fitz.Point(MARGIN + 4, LETTER_H - MARGIN / 2 + 3), f"◀ Left: {left_neighbor}", fontsize=6.5, color=(0.55, 0.55, 0.55))
-        out_page.insert_text(fitz.Point(LETTER_W - MARGIN - 90, LETTER_H - MARGIN / 2 + 3), f"▶ Right: {right_neighbor}", fontsize=6.5, color=(0.55, 0.55, 0.55))
+        # Note: Bottom and Right margins remain 100% clean and free of labels or text
+        # for clean shingle overlapping.
 
     out.save(out_pdf_path)
     size_mb = os.path.getsize(out_pdf_path) / (1024 * 1024)
@@ -464,7 +455,7 @@ def main():
         search_index[tree_id] = persons
         print(f"  [INDEX] Indexed {len(persons)} persons")
 
-        # 4. Generate Printable Tiled PDF (With Page 1 Assembly Guide Map + Clear Tile IDs)
+        # 4. Generate Printable Tiled PDF (0.25" Margins, Clean Bottom/Right for Shingling)
         tiles_out_path = os.path.join(TILES_DIR, f"{tree_id}_printable_tiles.pdf")
         tile_stats = generate_printable_tiles(doc, spec, tiles_out_path)
 
