@@ -611,38 +611,42 @@
     }
 
     .ctrl-btn.active-toggle {
-      background: rgba(33, 150, 243, 0.25);
-      border-color: #3498db;
-      color: #90caf9;
+      background: #1976d2 !important;
+      border-color: #64b5f6 !important;
+      color: #ffffff !important;
+      font-weight: 600;
+      box-shadow: 0 0 10px rgba(33, 150, 243, 0.5);
     }
 
     /* Sheet Seams Overlay */
     .seam-tile-box {
       position: absolute;
-      border: 2px dashed rgba(33, 150, 243, 0.75);
-      background: rgba(33, 150, 243, 0.04);
+      border: 2.5px dashed rgba(25, 118, 210, 0.85);
+      background: rgba(33, 150, 243, 0.07);
       box-sizing: border-box;
       pointer-events: auto;
-      transition: background 0.15s ease, border-color 0.15s ease;
+      transition: background 0.15s ease, border 0.15s ease;
+      cursor: pointer;
     }
 
     .seam-tile-box:hover {
-      background: rgba(33, 150, 243, 0.12);
-      border-color: #2196f3;
+      background: rgba(33, 150, 243, 0.18);
+      border: 3px solid #00e5ff;
     }
 
     .seam-badge {
       position: absolute;
-      top: 4px;
-      left: 4px;
-      background: #153a5b;
+      top: 6px;
+      left: 6px;
+      background: #0d47a1;
       color: #ffffff;
-      padding: 2px 7px;
+      padding: 3px 8px;
       border-radius: 4px;
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 700;
       letter-spacing: 0.3px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.45);
       white-space: nowrap;
       pointer-events: none;
     }
@@ -995,10 +999,11 @@
     // ==========================================================================
     async function init() {
       try {
-        // Fetch metadata & search index
+        // Fetch metadata & search index with cache-busting timestamp
+        const cacheBuster = Date.now();
         const [metaRes, indexRes] = await Promise.all([
-          fetch('trees_meta.json'),
-          fetch('search_index.json')
+          fetch(`trees_meta.json?v=${cacheBuster}`),
+          fetch(`search_index.json?v=${cacheBuster}`)
         ]);
         
         treesData = await metaRes.json();
@@ -1109,7 +1114,7 @@
       if (!showSeams) return;
 
       const tree = treesData[currentTreeIndex];
-      if (!tree || !tree.tiles) return;
+      if (!tree) return;
 
       const layer = document.createElement('div');
       layer.id = 'seamsOverlayLayer';
@@ -1119,9 +1124,33 @@
       layer.style.width = `${tree.svg_width_pt}px`;
       layer.style.height = `${tree.svg_height_pt}px`;
       layer.style.pointerEvents = 'none';
-      layer.style.zIndex = '8';
+      layer.style.zIndex = '15';
 
-      tree.tiles.forEach(t => {
+      let tiles = tree.tiles;
+      if (!tiles || tiles.length === 0) {
+        const cols = tree.grid_cols || 7;
+        const rows = tree.grid_rows || 7;
+        const tileW = tree.svg_width_pt / cols;
+        const tileH = tree.svg_height_pt / rows;
+        tiles = [];
+        let sNum = 1;
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            tiles.push({
+              tile_id: `${String.fromCharCode(65 + c)}-${r + 1}`,
+              sheet_num: sNum++,
+              x0: c * tileW,
+              y0: r * tileH,
+              w: tileW,
+              h: tileH,
+              col: c,
+              row: r
+            });
+          }
+        }
+      }
+
+      tiles.forEach(t => {
         const tileBox = document.createElement('div');
         tileBox.className = 'seam-tile-box';
         tileBox.style.left = `${t.x0}px`;
@@ -1144,8 +1173,12 @@
     function toggleSeamsOverlay() {
       showSeams = !showSeams;
       const btn = document.getElementById('btnToggleSeams');
+      const label = document.getElementById('seamsBtnLabel');
       if (btn) {
         btn.classList.toggle('active-toggle', showSeams);
+      }
+      if (label) {
+        label.textContent = showSeams ? 'Seams ON' : 'Seams';
       }
       renderSeamsOverlay();
     }
