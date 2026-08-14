@@ -34,8 +34,8 @@ TREE_SPECS = [
         'id': '000059',
         'file': '000059_94254091rdg39966w5890t_A.pdf',
         'name': 'Close Family of Marion Parker Inglis',
-        'subtitle': 'Marion Parker Inglis (b. Feb 2, 1909, Glasgow)',
-        'description': 'Full close family branch spanning 6+ generations with 98+ family members across Scotland & North America.',
+        'subtitle': 'Marion Parker Inglis (b. 1909, Glasgow)',
+        'description': '6 generations across Scotland and North America.',
         'width_in': 62.7,
         'height_in': 46.0,
     },
@@ -43,8 +43,8 @@ TREE_SPECS = [
         'id': '000061',
         'file': '000061_762453ldc65q126fw5lv98_A.pdf',
         'name': 'Close Family of Thomas Kinlay Johnston',
-        'subtitle': 'Thomas Kinlay Johnston (b. Jun 27, 1913, Fife)',
-        'description': 'Comprehensive panoramic tree spanning 8+ generations with 200+ family members.',
+        'subtitle': 'Thomas Kinlay Johnston (b. 1913, Fife)',
+        'description': 'Panoramic chart spanning 8 generations with 200+ family members.',
         'width_in': 151.2,
         'height_in': 37.6,
     },
@@ -52,8 +52,8 @@ TREE_SPECS = [
         'id': '000067',
         'file': '000067_222401i6396f79e5bznd7b_A.pdf',
         'name': 'Ancestors of Marion Parker Inglis',
-        'subtitle': 'Direct Ancestors of Marion Parker Inglis',
-        'description': 'Direct ancestral lineage tracing backward through Inglis, Gallie, and Crawford lines.',
+        'subtitle': 'Ancestors of Marion Parker Inglis',
+        'description': 'Inglis, Gallie, and Crawford family lines.',
         'width_in': 54.4,
         'height_in': 39.3,
     },
@@ -61,8 +61,8 @@ TREE_SPECS = [
         'id': '000069',
         'file': '000069_011201c6d3z98f777bt629_A.pdf',
         'name': 'Ancestors of John Inglis',
-        'subtitle': 'John Inglis (b. May 26, 1872, Roxburgh)',
-        'description': 'Ancestral chart of John Inglis tracing paternal and maternal Scottish origins.',
+        'subtitle': 'John Inglis (b. 1872, Roxburgh)',
+        'description': 'Scottish ancestral lineage of the Inglis family.',
         'width_in': 43.6,
         'height_in': 35.8,
     },
@@ -70,8 +70,8 @@ TREE_SPECS = [
         'id': '000071',
         'file': '000071_77048093bwa928agcd8b62_A.pdf',
         'name': 'Ancestors of Thomas Kinlay Johnston',
-        'subtitle': 'Thomas Kinlay Johnston (b. Jun 27, 1913, Fife)',
-        'description': 'Ancestral chart for Thomas Kinlay Johnston tracing the Johnston, Kinlay, and Mackie families.',
+        'subtitle': 'Thomas Kinlay Johnston (b. 1913, Fife)',
+        'description': 'Johnston, Kinlay, and Mackie family lines.',
         'width_in': 40.9,
         'height_in': 27.7,
     },
@@ -381,8 +381,8 @@ def generate_printable_tiles(doc, tree_info, out_pdf_path):
     # Header Box
     header_box = fitz.Rect(MARGIN, MARGIN, LETTER_W - MARGIN, MARGIN + 42)
     guide_page.draw_rect(header_box, color=(0.15, 0.35, 0.55), fill=(0.94, 0.97, 1.0), width=1.5)
-    guide_page.insert_text(fitz.Point(MARGIN + 12, MARGIN + 18), 'MASTER ASSEMBLY GUIDE & GRID MAP', fontsize=13, fontname='hebo', color=(0.1, 0.25, 0.45))
-    guide_page.insert_text(fitz.Point(MARGIN + 12, MARGIN + 33), f"{tree_info['name']}   |   Total Size: {tree_info['width_in']}\" × {tree_info['height_in']}\"   |   {total_active_pages} Sheets to Print ({skipped_count} Empty Omitted)", fontsize=8.5, color=(0.3, 0.4, 0.5))
+    guide_page.insert_text(fitz.Point(MARGIN + 12, MARGIN + 18), 'ASSEMBLY GUIDE & GRID MAP', fontsize=13, fontname='hebo', color=(0.1, 0.25, 0.45))
+    guide_page.insert_text(fitz.Point(MARGIN + 12, MARGIN + 33), f"{tree_info['name']}   |   Size: {tree_info['width_in']}\" × {tree_info['height_in']}\"   |   {total_active_pages} Sheets (+1 Guide Sheet)", fontsize=8.5, color=(0.3, 0.4, 0.5))
 
     # Grid Dimensions
     grid_top = MARGIN + 56
@@ -433,10 +433,10 @@ def generate_printable_tiles(doc, tree_info, out_pdf_path):
     # Bottom Instructions Box
     inst_box = fitz.Rect(MARGIN, LETTER_H - MARGIN - 54, LETTER_W - MARGIN, LETTER_H - MARGIN)
     guide_page.draw_rect(inst_box, color=(0.8, 0.8, 0.8), fill=(0.98, 0.98, 0.98))
-    guide_page.insert_text(fitz.Point(MARGIN + 10, LETTER_H - MARGIN - 38), 'ZERO-BREAK PROFILE PRESERVATION (ZERO CUTTING / SHINGLE OVERLAP):', fontsize=8.5, fontname='hebo', color=(0.2, 0.2, 0.2))
-    guide_page.insert_text(fitz.Point(MARGIN + 10, LETTER_H - MARGIN - 26), '1. Every person profile (photo, name, dates) is 100% whole on every sheet and never sliced at margins.', fontsize=7.5, color=(0.35, 0.35, 0.35))
-    guide_page.insert_text(fitz.Point(MARGIN + 10, LETTER_H - MARGIN - 15), '2. Shingle from top-left: overlap each sheet 0.25" over the clean bottom/right edge of its neighbor and tape down.', fontsize=7.5, color=(0.35, 0.35, 0.35))
-    guide_page.insert_text(fitz.Point(MARGIN + 10, LETTER_H - MARGIN - 4), '3. Gray cells marked "—" are empty space with no family members and were omitted to save paper.', fontsize=7.5, color=(0.35, 0.35, 0.35))
+    guide_page.insert_text(fitz.Point(MARGIN + 10, LETTER_H - MARGIN - 38), 'ASSEMBLY INSTRUCTIONS:', fontsize=8.5, fontname='hebo', color=(0.2, 0.2, 0.2))
+    guide_page.insert_text(fitz.Point(MARGIN + 10, LETTER_H - MARGIN - 26), '1. Follow the grid above. Sheets are labeled with their column and row (e.g., Tile A-1, B-1).', fontsize=7.5, color=(0.35, 0.35, 0.35))
+    guide_page.insert_text(fitz.Point(MARGIN + 10, LETTER_H - MARGIN - 15), '2. Overlap adjacent sheets along the 0.25" white margin. No trimming required.', fontsize=7.5, color=(0.35, 0.35, 0.35))
+    guide_page.insert_text(fitz.Point(MARGIN + 10, LETTER_H - MARGIN - 4), '3. Gray cells marked "—" are empty space and were omitted to save paper.', fontsize=7.5, color=(0.35, 0.35, 0.35))
 
     # =========================================================================
     # PAGES 2+: INDIVIDUAL ACTIVE TILES
@@ -462,10 +462,10 @@ def generate_printable_tiles(doc, tree_info, out_pdf_path):
         out_page.insert_text(fitz.Point(MARGIN + 8, MARGIN + HEADER_H - 7), f"TILE {tile_id}", fontsize=9, fontname='hebo', color=(1, 1, 1))
 
         # Sheet Number & Tree Title
-        out_page.insert_text(fitz.Point(MARGIN + 90, MARGIN + HEADER_H - 7), f"Sheet {idx+1} of {total_active_pages}  (Page {idx+2} of {total_active_pages+1})   |   {tree_info['name']}", fontsize=8, color=(0.2, 0.2, 0.2))
+        out_page.insert_text(fitz.Point(MARGIN + 90, MARGIN + HEADER_H - 7), f"Sheet {idx+1} of {total_active_pages}   |   {tree_info['name']}", fontsize=8, color=(0.2, 0.2, 0.2))
 
         # Grid Coordinates on right
-        coord_str = f"Col {get_col_letter(col)} of {n_cols} (Col {col+1}), Row {row+1} of {n_rows}"
+        coord_str = f"Col {get_col_letter(col)}, Row {row+1} (Grid {n_cols} × {n_rows})"
         out_page.insert_text(fitz.Point(LETTER_W - MARGIN - 180, MARGIN + HEADER_H - 7), coord_str, fontsize=7.5, color=(0.35, 0.35, 0.35))
 
         # Tile drawing area with safe scaling if expanded

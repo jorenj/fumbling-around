@@ -783,7 +783,7 @@
         <span class="brand-icon">📜</span>
         <h1>Grannie's Family Trees</h1>
       </div>
-      <p>Interactive Vector Atlas & Name Search</p>
+      <p>Family history and lineage records</p>
     </div>
 
     <!-- Search Box with Autocomplete -->
@@ -794,7 +794,7 @@
           type="text" 
           id="searchInput" 
           class="search-input" 
-          placeholder="Search any family member name..." 
+          placeholder="Search for a name..." 
           autocomplete="off"
           spellcheck="false"
         >
@@ -808,7 +808,7 @@
     <div class="sidebar-scrollable">
       <!-- Tree Selector -->
       <div>
-        <div class="section-label">🌳 Select Family Tree Chart (5)</div>
+        <div class="section-label">Family Trees</div>
         <div class="tree-cards" id="treeCards">
           <!-- Injected dynamically via JS -->
         </div>
@@ -816,27 +816,27 @@
 
       <!-- Printable Download Section -->
       <div>
-        <div class="section-label">🖨 Printable Home Tiled PDF</div>
+        <div class="section-label">Printable Version</div>
         <div class="print-card" id="printCard">
           <div class="print-card-title">
             <span>📄</span>
-            <span id="printTreeTitle">Letter-Size Printable Tiles</span>
+            <span id="printTreeTitle">Printable Sheets</span>
           </div>
           <p class="print-card-desc">
-            Download this tree split into standard 8.5"×11" letter sheets at <strong>1:1 original scale</strong> with <strong>0.25" margins</strong>, clean bottom/right edges for seamless shingle overlapping, pure white background, and <strong>Page 1 Master Assembly Guide</strong>.
+            Standard 8.5" × 11" printable sheets with an assembly guide on Page 1.
           </p>
           <div class="print-meta-grid">
-            <div>Printed Sheets: <strong id="printSheetCount">26 Sheets (+1 Guide)</strong></div>
-            <div>Grid Pattern: <strong id="printGridSize">7 × 7 Grid (23 empty omitted)</strong></div>
-            <div>Margins: <strong>0.25" (Shingle Overlap)</strong></div>
-            <div>Assembly Guide: <strong>Page 1 Master Map</strong></div>
+            <div>Sheets: <strong id="printSheetCount">29 Sheets + Guide</strong></div>
+            <div>Grid: <strong id="printGridSize">7 × 7 Layout</strong></div>
+            <div>Paper: <strong>Letter (8.5" × 11")</strong></div>
+            <div>Guide: <strong>Page 1 Map</strong></div>
           </div>
           <div class="btn-actions-group">
             <a id="printPreviewBtn" href="tiles/000059_printable_tiles.pdf" target="_blank" rel="noopener" class="btn-preview">
-              👁 Preview & Print Tiled PDF
+              👁 Open Printable PDF
             </a>
             <a id="printDownloadBtn" href="tiles/000059_printable_tiles.pdf" download class="btn-download-secondary">
-              📥 Direct Download to Disk
+              📥 Download PDF
             </a>
           </div>
         </div>
@@ -848,13 +848,13 @@
   <main class="viewport" id="viewport">
     <!-- Helpful tip toast -->
     <div class="guide-toast">
-      <span>💡 Navigation:</span> Drag to pan • Scroll / Pinch to zoom • Type a name in search to snap
+      <span>Tip:</span> Drag to pan • Scroll or pinch to zoom • Click or search any name to view
     </div>
 
     <!-- Loading Spinner Overlay -->
     <div class="loading-overlay" id="loadingOverlay">
       <div class="spinner"></div>
-      <div class="loading-text" id="loadingText">Rendering crisp vector tree...</div>
+      <div class="loading-text" id="loadingText">Loading tree...</div>
     </div>
 
     <!-- Dynamic SVG Layer -->
@@ -996,8 +996,8 @@
 
       // Update print card
       printTreeTitle.textContent = tree.name;
-      printSheetCount.textContent = `${tree.tile_pages} Sheets (+1 Guide Sheet)`;
-      printGridSize.textContent = `${tree.grid_cols} × ${tree.grid_rows} Grid (${tree.skipped_empty} empty omitted)`;
+      printSheetCount.textContent = `${tree.tile_pages} Sheets + Guide`;
+      printGridSize.textContent = `${tree.grid_cols} × ${tree.grid_rows} Layout`;
       printPreviewBtn.href = tree.tile_pdf;
       printDownloadBtn.href = tree.tile_pdf;
 
@@ -1265,7 +1265,7 @@
     function renderSearchResults(results, query) {
       searchDropdown.innerHTML = '';
       if (results.length === 0) {
-        searchDropdown.innerHTML = `<div class="search-no-results">No family members found matching "${query}"</div>`;
+        searchDropdown.innerHTML = `<div class="search-no-results">No results found for "${query}"</div>`;
         searchDropdown.classList.add('open');
         return;
       }
@@ -1283,7 +1283,7 @@
             <span>${highlightedName}</span>
             <span class="search-item-tree-badge">${res.treeName.split(' ')[0]} ${res.treeName.split(' ')[1]}</span>
           </div>
-          <div class="search-item-details">${res.person.details || 'Lineage record'}</div>
+          <div class="search-item-details">${res.person.details || ''}</div>
         `;
 
         item.addEventListener('click', () => {
