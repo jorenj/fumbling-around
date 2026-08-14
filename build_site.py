@@ -2,10 +2,11 @@
 """
 build_site.py - Generate all website assets for Grannie's Family Trees website.
 
-Key enhancements:
+Features:
   - 100% pure crisp white background (no printer ink waste on background tint).
+  - Page 1 Master Assembly Guide Sheet with complete visual grid map showing where every tile fits and which spots are blank.
+  - Clear alphanumeric Tile Identifiers (e.g. [ TILE B-3 ]) on every sheet and margin connector labels.
   - Empty sheet elimination: skips tiles with no names/connectors (saving 35-50% paper).
-  - Clear assembly headers: shows both sheet number and exact grid coordinates (Column X/Y, Row A/B).
 """
 
 import os
@@ -192,17 +193,24 @@ def extract_search_data(doc):
 
     return merged_persons
 
+def get_col_letter(col_idx: int) -> str:
+    """Convert column index (0-based) to letter (A, B, ... Z, AA, AB...)."""
+    if col_idx < 26:
+        return chr(65 + col_idx)
+    return chr(65 + col_idx // 26 - 1) + chr(65 + col_idx % 26)
+
 def generate_printable_tiles(doc, tree_info, out_pdf_path):
     """
     Generate Letter landscape tiled PDF at 1:1 original scale with pure white background.
-    Skips all completely empty tiles to save paper and printing time.
+    - Page 1: Master Assembly Guide & Visual Grid Map
+    - Pages 2+: Non-empty tiles with clear Tile Identifiers (e.g. [ TILE B-3 ]) and edge connectors
     """
     src_page = doc[0]
 
     LETTER_W = 792   # 11 inches in points (landscape)
     LETTER_H = 612   # 8.5 inches in points
     MARGIN = 36      # 0.5 inch margin
-    HEADER_H = 24    # 24 pt header bar
+    HEADER_H = 26    # 26 pt header bar
     OVERLAP = 36     # 0.5 inch overlap between tiles
 
     usable_w = LETTER_W - 2 * MARGIN
@@ -228,6 +236,8 @@ def generate_printable_tiles(doc, tree_info, out_pdf_path):
 
     # 1. First pass: find all active non-empty tiles
     active_tiles = []
+    active_map = {}  # (col, row) -> sheet_number (1-based)
+
     for row in range(n_rows):
         for col in range(n_cols):
             clip_x0 = col * step_w
@@ -257,25 +267,102 @@ def generate_printable_tiles(doc, tree_info, out_pdf_path):
                     break
 
             if has_text or has_drawing:
+                sheet_idx = len(active_tiles) + 1
+                tile_id = f"{get_col_letter(col)}-{row+1}"
                 active_tiles.append({
                     'col': col,
                     'row': row,
+                    'tile_id': tile_id,
+                    'sheet_num': sheet_idx,
                     'clip_rect': tile_rect,
                     'clip_x0': clip_x0,
                     'clip_y0': clip_y0,
                     'clip_x1': clip_x1,
                     'clip_y1': clip_y1,
                 })
+                active_map[(col, row)] = sheet_idx
 
     total_active_pages = len(active_tiles)
     skipped_count = total_grid_tiles - total_active_pages
 
-    # 2. Second pass: generate pages for active tiles
     out = fitz.open()
 
+    # =========================================================================
+    # PAGE 1: MASTER ASSEMBLY GUIDE & VISUAL GRID MAP
+    # =========================================================================
+    guide_page = out.new_page(width=LETTER_W, height=LETTER_H)
+    guide_page.draw_rect(guide_page.rect, color=(1, 1, 1), fill=(1, 1, 1))
+
+    # Header Box
+    header_box = fitz.Rect(MARGIN, MARGIN, LETTER_W - MARGIN, MARGIN + 46)
+    guide_page.draw_rect(header_box, color=(0.15, 0.35, 0.55), fill=(0.94, 0.97, 1.0), width=1.5)
+    guide_page.insert_text(fitz.Point(MARGIN + 14, MARGIN + 20), 'MASTER ASSEMBLY GUIDE & GRID MAP', fontsize=13, fontname='hebo', color=(0.1, 0.25, 0.45))
+    guide_page.insert_text(fitz.Point(MARGIN + 14, MARGIN + 36), f"{tree_info['name']}   |   Total Size: {tree_info['width_in']}\" × {tree_info['height_in']}\"   |   {total_active_pages} Sheets to Print ({skipped_count} Empty Omitted)", fontsize=8.5, color=(0.3, 0.4, 0.5))
+
+    # Grid Dimensions
+    grid_top = MARGIN + 62
+    grid_left = MARGIN + 28
+    grid_width = LETTER_W - 2 * MARGIN - 42
+    grid_bottom = LETTER_H - MARGIN - 72
+    grid_height = grid_bottom - grid_top
+
+    cell_w = grid_width / n_cols
+    cell_h = grid_height / n_rows
+
+    # Top Column Headers (A, B, C...)
+    for c in range(n_cols):
+        col_letter = get_col_letter(c)
+        cx = grid_left + c * cell_w + cell_w / 2 - (6 if len(col_letter) == 1 else 10)
+        guide_page.insert_text(fitz.Point(cx, grid_top - 6), col_letter, fontsize=8.5, fontname='hebo', color=(0.2, 0.35, 0.5))
+
+    # Left Row Headers (R1, R2, R3...)
+    for r in range(n_rows):
+        ry = grid_top + r * cell_h + cell_h / 2 + 4
+        guide_page.insert_text(fitz.Point(grid_left - 24, ry), f"R{r+1}", fontsize=8, fontname='hebo', color=(0.2, 0.35, 0.5))
+
+    # Draw Grid Cells
+    for r in range(n_rows):
+        for c in range(n_cols):
+            rx = grid_left + c * cell_w
+            ry = grid_top + r * cell_h
+            cell_rect = fitz.Rect(rx + 1, ry + 1, rx + cell_w - 1, ry + cell_h - 1)
+            tile_id = f"{get_col_letter(c)}-{r+1}"
+
+            if (c, r) in active_map:
+                s_num = active_map[(c, r)]
+                # Active cell: pleasant light blue fill with dark blue border
+                guide_page.draw_rect(cell_rect, color=(0.25, 0.55, 0.8), fill=(0.92, 0.96, 1.0), width=1.2)
+                
+                # Dynamic font sizing based on grid column count
+                font_id = 9 if n_cols <= 8 else 7.5
+                font_sheet = 7.5 if n_cols <= 8 else 6.0
+                
+                guide_page.insert_text(fitz.Point(rx + 4, ry + (14 if cell_h > 40 else 12)), tile_id, fontsize=font_id, fontname='hebo', color=(0.1, 0.3, 0.55))
+                if cell_h > 26:
+                    guide_page.insert_text(fitz.Point(rx + 4, ry + (26 if cell_h > 40 else 22)), f"Sheet #{s_num}", fontsize=font_sheet, color=(0.15, 0.5, 0.25))
+            else:
+                # Omitted empty cell: grayed out with hash/blank indicator
+                guide_page.draw_rect(cell_rect, color=(0.84, 0.84, 0.84), fill=(0.96, 0.96, 0.96), width=0.5)
+                font_id = 8 if n_cols <= 8 else 6.5
+                guide_page.insert_text(fitz.Point(rx + 4, ry + (14 if cell_h > 40 else 12)), tile_id, fontsize=font_id, color=(0.65, 0.65, 0.65))
+                if cell_h > 26:
+                    guide_page.insert_text(fitz.Point(rx + 4, ry + (25 if cell_h > 40 else 21)), "—", fontsize=8, color=(0.7, 0.7, 0.7))
+
+    # Bottom Instructions Box
+    inst_box = fitz.Rect(MARGIN, LETTER_H - MARGIN - 60, LETTER_W - MARGIN, LETTER_H - MARGIN)
+    guide_page.draw_rect(inst_box, color=(0.8, 0.8, 0.8), fill=(0.98, 0.98, 0.98))
+    guide_page.insert_text(fitz.Point(MARGIN + 10, LETTER_H - MARGIN - 44), 'HOW TO ASSEMBLE YOUR FAMILY TREE:', fontsize=8.5, fontname='hebo', color=(0.2, 0.2, 0.2))
+    guide_page.insert_text(fitz.Point(MARGIN + 10, LETTER_H - MARGIN - 31), '1. Match the Tile Identifier in the top header of each printed sheet (e.g. [ TILE B-3 ]) to its position on the grid above.', fontsize=7.5, color=(0.35, 0.35, 0.35))
+    guide_page.insert_text(fitz.Point(MARGIN + 10, LETTER_H - MARGIN - 19), '2. Gray cells marked "—" are empty whitespace in the chart and were omitted to save paper. Leave those positions blank.', fontsize=7.5, color=(0.35, 0.35, 0.35))
+    guide_page.insert_text(fitz.Point(MARGIN + 10, LETTER_H - MARGIN - 7), '3. Overlap adjacent sheets by 0.5 inches along the borders and tape or pin them together row-by-row.', fontsize=7.5, color=(0.35, 0.35, 0.35))
+
+    # =========================================================================
+    # PAGES 2+: INDIVIDUAL ACTIVE TILES WITH CLEAR IDENTIFIERS
+    # =========================================================================
     for idx, tile in enumerate(active_tiles):
         col = tile['col']
         row = tile['row']
+        tile_id = tile['tile_id']
         clip_rect = tile['clip_rect']
         clip_x0 = tile['clip_x0']
         clip_y0 = tile['clip_y0']
@@ -289,11 +376,19 @@ def generate_printable_tiles(doc, tree_info, out_pdf_path):
 
         # Header background bar
         header_rect = fitz.Rect(MARGIN, MARGIN, LETTER_W - MARGIN, MARGIN + HEADER_H)
-        out_page.draw_rect(header_rect, color=(0.85, 0.85, 0.85), fill=(0.97, 0.97, 0.97))
+        out_page.draw_rect(header_rect, color=(0.2, 0.35, 0.5), fill=(0.95, 0.97, 1.0))
         
-        # Header text: Tree name + Grid coordinates + Sheet number
-        title_text = f"{tree_info['name']}   |   Grid: Column {col+1} of {n_cols}, Row {row+1} of {n_rows}   |   Sheet {idx+1} of {total_active_pages}"
-        out_page.insert_text(fitz.Point(MARGIN + 8, MARGIN + HEADER_H - 7), title_text, fontsize=8.5, color=(0.15, 0.15, 0.15))
+        # High-contrast prominent Tile ID badge on left
+        badge_rect = fitz.Rect(MARGIN + 4, MARGIN + 4, MARGIN + 85, MARGIN + HEADER_H - 4)
+        out_page.draw_rect(badge_rect, color=(0.15, 0.35, 0.55), fill=(0.15, 0.35, 0.55))
+        out_page.insert_text(fitz.Point(MARGIN + 10, MARGIN + HEADER_H - 8), f"TILE {tile_id}", fontsize=9.5, fontname='hebo', color=(1, 1, 1))
+
+        # Sheet Number & Tree Title
+        out_page.insert_text(fitz.Point(MARGIN + 95, MARGIN + HEADER_H - 8), f"Sheet {idx+1} of {total_active_pages}  (Page {idx+2} of {total_active_pages+1})   |   {tree_info['name']}", fontsize=8.5, color=(0.2, 0.2, 0.2))
+
+        # Grid Coordinates on right
+        coord_str = f"Col {get_col_letter(col)} of {n_cols} (Col {col+1}), Row {row+1} of {n_rows}"
+        out_page.insert_text(fitz.Point(LETTER_W - MARGIN - 185, MARGIN + HEADER_H - 8), coord_str, fontsize=8, color=(0.35, 0.35, 0.35))
 
         # Tile drawing area
         dest_w = clip_x1 - clip_x0
@@ -308,14 +403,28 @@ def generate_printable_tiles(doc, tree_info, out_pdf_path):
         out_page.show_pdf_page(dest_rect, doc, 0, clip=clip_rect)
 
         # Border around tile
-        out_page.draw_rect(dest_rect, color=(0.75, 0.75, 0.75), width=0.5)
+        out_page.draw_rect(dest_rect, color=(0.7, 0.7, 0.7), width=0.5)
+
+        # Edge connector guides along margins (helps Grannie align sheets effortlessly)
+        top_neighbor = f"{get_col_letter(col)}-{row}" if row > 0 else "[ TOP BORDER ]"
+        bottom_neighbor = f"{get_col_letter(col)}-{row+2}" if row < n_rows - 1 else "[ BOTTOM BORDER ]"
+        left_neighbor = f"{get_col_letter(col-1)}-{row+1}" if col > 0 else "[ LEFT BORDER ]"
+        right_neighbor = f"{get_col_letter(col+1)}-{row+1}" if col < n_cols - 1 else "[ RIGHT BORDER ]"
+
+        # Margin hints
+        out_page.insert_text(fitz.Point(MARGIN + dest_w / 2 - 40, LETTER_H - MARGIN / 2 + 3), f"▼ Bottom: {bottom_neighbor}", fontsize=6.5, color=(0.55, 0.55, 0.55))
+        out_page.insert_text(fitz.Point(MARGIN + 4, LETTER_H - MARGIN / 2 + 3), f"◀ Left: {left_neighbor}", fontsize=6.5, color=(0.55, 0.55, 0.55))
+        out_page.insert_text(fitz.Point(LETTER_W - MARGIN - 90, LETTER_H - MARGIN / 2 + 3), f"▶ Right: {right_neighbor}", fontsize=6.5, color=(0.55, 0.55, 0.55))
 
     out.save(out_pdf_path)
     size_mb = os.path.getsize(out_pdf_path) / (1024 * 1024)
-    print(f"  [TILES] Generated {out_pdf_path} ({total_active_pages} sheets printed, {skipped_count} empty skipped | {n_cols}×{n_rows} grid, {size_mb:.2f} MB)")
+    total_pdf_pages = total_active_pages + 1  # includes Page 1 Assembly Guide
+    print(f"  [TILES] Generated {out_pdf_path} ({total_pdf_pages} total PDF pages: 1 Guide Map + {total_active_pages} tiles | {skipped_count} empty skipped | {size_mb:.2f} MB)")
     
     return {
+        'guide_pages': 1,
         'active_pages': total_active_pages,
+        'total_pdf_pages': total_pdf_pages,
         'grid_cols': n_cols,
         'grid_rows': n_rows,
         'total_grid_tiles': total_grid_tiles,
@@ -349,7 +458,7 @@ def main():
         search_index[tree_id] = persons
         print(f"  [INDEX] Indexed {len(persons)} persons")
 
-        # 4. Generate Printable Tiled PDF (White background, empty sheets skipped)
+        # 4. Generate Printable Tiled PDF (With Page 1 Assembly Guide Map + Clear Tile IDs)
         tiles_out_path = os.path.join(TILES_DIR, f"{tree_id}_printable_tiles.pdf")
         tile_stats = generate_printable_tiles(doc, spec, tiles_out_path)
 
@@ -364,6 +473,7 @@ def main():
             'svg_height_pt': ph,
             'person_count': len(persons),
             'tile_pages': tile_stats['active_pages'],
+            'total_pdf_pages': tile_stats['total_pdf_pages'],
             'grid_cols': tile_stats['grid_cols'],
             'grid_rows': tile_stats['grid_rows'],
             'total_grid_tiles': tile_stats['total_grid_tiles'],
