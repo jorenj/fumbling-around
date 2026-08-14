@@ -592,8 +592,41 @@
       border-color: var(--border-subtle);
     }
 
-    .ctrl-btn:active {
-      transform: scale(0.95);
+    .ctrl-btn.active-toggle {
+      background: rgba(33, 150, 243, 0.25);
+      border-color: #3498db;
+      color: #90caf9;
+    }
+
+    /* Sheet Seams Overlay */
+    .seam-tile-box {
+      position: absolute;
+      border: 2px dashed rgba(33, 150, 243, 0.75);
+      background: rgba(33, 150, 243, 0.04);
+      box-sizing: border-box;
+      pointer-events: auto;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+
+    .seam-tile-box:hover {
+      background: rgba(33, 150, 243, 0.12);
+      border-color: #2196f3;
+    }
+
+    .seam-badge {
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      background: #153a5b;
+      color: #ffffff;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+      white-space: nowrap;
+      pointer-events: none;
     }
 
     .zoom-level-badge {
@@ -873,6 +906,10 @@
 
     <!-- Zoom & Navigation Floating Controls -->
     <div class="controls-overlay">
+      <button class="ctrl-btn" id="btnToggleSeams" title="Toggle Printable Sheet Seams & Assembly Grid" style="width: auto; padding: 0 10px; font-size: 0.82rem; gap: 5px;">
+        <span>🔲</span> <span id="seamsBtnLabel">Seams</span>
+      </button>
+      <div class="ctrl-divider"></div>
       <button class="ctrl-btn" id="btnZoomOut" title="Zoom Out ( - )">−</button>
       <span class="zoom-level-badge" id="zoomLevelText">100%</span>
       <button class="ctrl-btn" id="btnZoomIn" title="Zoom In ( + )">+</button>
@@ -889,6 +926,7 @@
     let treesData = [];
     let searchIndex = {};
     let currentTreeIndex = 0;
+    let showSeams = false;
 
     // Viewport transform state
     let tx = 0;
@@ -1023,6 +1061,9 @@
         // Render interactive clickable hotspots for every person
         renderHotspots();
 
+        // Render printable sheet seams overlay if toggled on
+        renderSeamsOverlay();
+
         // Fit newly loaded tree to viewport
         fitToScreen(false);
       } catch (err) {
@@ -1030,6 +1071,54 @@
       } finally {
         loadingOverlay.classList.add('hidden');
       }
+    }
+
+    function renderSeamsOverlay() {
+      const oldOverlay = document.getElementById('seamsOverlayLayer');
+      if (oldOverlay) oldOverlay.remove();
+
+      if (!showSeams) return;
+
+      const tree = treesData[currentTreeIndex];
+      if (!tree || !tree.tiles) return;
+
+      const layer = document.createElement('div');
+      layer.id = 'seamsOverlayLayer';
+      layer.style.position = 'absolute';
+      layer.style.top = '0';
+      layer.style.left = '0';
+      layer.style.width = `${tree.svg_width_pt}px`;
+      layer.style.height = `${tree.svg_height_pt}px`;
+      layer.style.pointerEvents = 'none';
+      layer.style.zIndex = '8';
+
+      tree.tiles.forEach(t => {
+        const tileBox = document.createElement('div');
+        tileBox.className = 'seam-tile-box';
+        tileBox.style.left = `${t.x0}px`;
+        tileBox.style.top = `${t.y0}px`;
+        tileBox.style.width = `${t.w}px`;
+        tileBox.style.height = `${t.h}px`;
+        tileBox.setAttribute('title', `Sheet #${t.sheet_num} (Tile ${t.tile_id}) • Width: ${(t.w/72).toFixed(1)}" Height: ${(t.h/72).toFixed(1)}" • Col ${t.col+1}, Row ${t.row+1}`);
+
+        const badge = document.createElement('div');
+        badge.className = 'seam-badge';
+        badge.textContent = `Sheet #${t.sheet_num} (${t.tile_id})`;
+        tileBox.appendChild(badge);
+
+        layer.appendChild(tileBox);
+      });
+
+      svgContainer.appendChild(layer);
+    }
+
+    function toggleSeamsOverlay() {
+      showSeams = !showSeams;
+      const btn = document.getElementById('btnToggleSeams');
+      if (btn) {
+        btn.classList.toggle('active-toggle', showSeams);
+      }
+      renderSeamsOverlay();
     }
 
     function renderHotspots() {
@@ -1398,6 +1487,8 @@
       });
 
       // Controls Buttons
+      document.getElementById('btnToggleSeams').addEventListener('click', toggleSeamsOverlay);
+
       document.getElementById('btnZoomIn').addEventListener('click', () => {
         zoomToPoint(1.3, viewport.clientWidth / 2, viewport.clientHeight / 2);
       });
@@ -1433,6 +1524,8 @@
           zoomToPoint(0.8, viewport.clientWidth / 2, viewport.clientHeight / 2);
         } else if (e.key === 'f' || e.key === 'F') {
           fitToScreen(true);
+        } else if (e.key === 's' || e.key === 'S') {
+          toggleSeamsOverlay();
         } else if (e.key === '0') {
           fitToScreen(true);
         } else if (e.key === 'Escape') {
