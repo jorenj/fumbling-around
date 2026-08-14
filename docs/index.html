@@ -794,12 +794,12 @@
             <span id="printTreeTitle">Letter-Size Printable Tiles</span>
           </div>
           <p class="print-card-desc">
-            Download this tree split into standard 8.5"×11" letter sheets at <strong>1:1 original scale</strong> with overlapping borders and column/row grid marks.
+            Download this tree split into standard 8.5"×11" letter sheets at <strong>1:1 original scale</strong> with a <strong>pure white background</strong> (saves printer ink) and empty sheets automatically omitted.
           </p>
           <div class="print-meta-grid">
-            <div>Sheet Count: <strong id="printSheetCount">49 Pages</strong></div>
-            <div>Grid Pattern: <strong id="printGridSize">7 × 7 Grid</strong></div>
-            <div>Paper Size: <strong>Letter (11"×8.5")</strong></div>
+            <div>Printed Sheets: <strong id="printSheetCount">28 Sheets</strong></div>
+            <div>Grid Pattern: <strong id="printGridSize">7 × 7 Grid (21 empty omitted)</strong></div>
+            <div>Background: <strong>Pure White (Ink-Saving)</strong></div>
             <div>Overlap: <strong>0.5" Margins</strong></div>
           </div>
           <a id="printDownloadBtn" href="tiles/000059_printable_tiles.pdf" target="_blank" download class="btn-download">
@@ -932,7 +932,7 @@
           <div class="tree-card-tags">
             <span class="tag">👥 ${tree.person_count} People</span>
             <span class="tag">📐 ${tree.width_in}" × ${tree.height_in}"</span>
-            <span class="tag">📄 ${tree.tile_pages} Tiles</span>
+            <span class="tag">📄 ${tree.tile_pages} Sheets</span>
           </div>
         `;
         card.addEventListener('click', () => {
@@ -961,10 +961,8 @@
 
       // Update print card
       printTreeTitle.textContent = tree.name;
-      printSheetCount.textContent = `${tree.tile_pages} Pages`;
-      const gridW = Math.ceil(tree.svg_width_pt / 648);
-      const gridH = Math.ceil(tree.svg_height_pt / 468);
-      printGridSize.textContent = `${gridW} × ${gridH} Grid`;
+      printSheetCount.textContent = `${tree.tile_pages} Printed Sheets`;
+      printGridSize.textContent = `${tree.grid_cols} × ${tree.grid_rows} Grid (${tree.skipped_empty} empty omitted)`;
       printDownloadBtn.href = tree.tile_pdf;
 
       // Close person modal & clear highlights
