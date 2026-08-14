@@ -255,7 +255,7 @@ def generate_printable_tiles(doc, tree_info, out_pdf_path):
         if not merged:
             clusters.append(fitz.Rect(b))
 
-    # 1. Identify true generational Y tier gaps (gap > 20 pt)
+    # 1. Identify true generational Y tier gaps (gap > 10 pt)
     y_intervals = sorted([(c.y0, c.y1) for c in clusters])
     merged_y = []
     for r in y_intervals:
@@ -268,24 +268,30 @@ def generate_printable_tiles(doc, tree_info, out_pdf_path):
     for i in range(len(merged_y)-1):
         g0 = merged_y[i][1]
         g1 = merged_y[i+1][0]
-        if g1 - g0 > 15:  # Clean generational gap
+        if g1 - g0 > 10:  # Clean generational tier gap
             tier_gaps.append((g0 + g1) / 2)
 
     # Build Y seams from generational gaps (max height per row <= usable_h)
+    MAX_TIER_H = 340 if src_w > 5000 else usable_h
     y_seams = [0.0]
     while y_seams[-1] < src_h:
         curr = y_seams[-1]
         if curr + usable_h >= src_h:
-            y_seams.append(src_h)
-            break
-        reach = min(curr + usable_h, src_h)
-        cand = [g for g in tier_gaps if curr + 80 <= g <= reach]
-        if cand:
-            best_y = max(cand)
+            rem_gaps = [g for g in tier_gaps if curr + 80 <= g <= curr + usable_h]
+            if rem_gaps and (src_h - curr) > MAX_TIER_H:
+                y_seams.append(float(min(rem_gaps)))
+            else:
+                y_seams.append(src_h)
+                break
         else:
-            cand_any = [g for g in tier_gaps if curr + 30 <= g <= reach]
-            best_y = max(cand_any) if cand_any else reach
-        y_seams.append(float(best_y))
+            reach = min(curr + MAX_TIER_H, src_h)
+            cand = [g for g in tier_gaps if curr + 80 <= g <= reach]
+            if cand:
+                best_y = max(cand)
+            else:
+                cand_any = [g for g in tier_gaps if curr + 30 <= g <= curr + usable_h]
+                best_y = min(cand_any) if cand_any else min(curr + usable_h, src_h)
+            y_seams.append(float(best_y))
 
     # 2. Build per-row X seams that fall strictly into whitespace gutters
     all_grid_tiles = []
