@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <title>Grannie's Family Trees — Interactive Explorer & Printable Atlas</title>
+  <meta name="description" content="Interactive vector explorer for Grannie's Scottish family trees with instant name search, pan & zoom, and printable letter-size tiled charts.">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-canvas: #12151b;
+      --bg-sidebar: #181d26;
+      --bg-card: #202734;
+      --bg-card-hover: #283142;
+      --bg-card-active: #23354d;
+      --border-subtle: #2d3748;
+      --border-accent: #c69255;
+      
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-subtle: #6b7280;
+      
+      --accent-gold: #d4a373;
+      --accent-gold-hover: #e6b98d;
+      --accent-gold-glow: rgba(212, 163, 115, 0.4);
+      --accent-blue: #38bdf8;
+      
+      --sidebar-width: 380px;
+      --header-height: 60px;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg-canvas);
+      color: var(--text-main);
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      display: flex;
+    }
+
+    /* ==========================================================================
+       Sidebar Layout
+       ========================================================================== */
+    .sidebar {
+      width: var(--sidebar-width);
+      min-width: var(--sidebar-width);
+      background-color: var(--bg-sidebar);
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      z-index: 30;
+      box-shadow: 4px 0 20px rgba(0, 0, 0, 0.4);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .sidebar-header {
+      padding: 20px 20px 16px 20px;
+      border-bottom: 1px solid var(--border-subtle);
+      background: linear-gradient(180deg, rgba(212, 163, 115, 0.08) 0%, transparent 100%);
+    }
+
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+
+    .brand-icon {
+      color: var(--accent-gold);
+      font-size: 1.4rem;
+    }
+
+    .sidebar-header h1 {
+      font-family: 'Cinzel', 'Playfair Display', serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: #fff;
+    }
+
+    .sidebar-header p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+      line-height: 1.35;
+    }
+
+    /* Search Box */
+    .search-container {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border-subtle);
+      position: relative;
+    }
+
+    .search-input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      color: var(--text-subtle);
+      font-size: 0.95rem;
+      pointer-events: none;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 10px 36px 10px 36px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      color: var(--text-main);
+      font-size: 0.88rem;
+      font-family: inherit;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent-gold);
+      box-shadow: 0 0 0 3px rgba(212, 163, 115, 0.2);
+      background: #252d3d;
+    }
+
+    .search-input::placeholder {
+      color: var(--text-subtle);
+    }
+
+    .search-clear {
+      position: absolute;
+      right: 10px;
+      background: none;
+      border: none;
+      color: var(--text-subtle);
+      font-size: 1.1rem;
+      cursor: pointer;
+      padding: 4px;
+      display: none;
+    }
+
+    .search-clear:hover {
+      color: var(--text-main);
+    }
+
+    /* Search Autocomplete Dropdown */
+    .search-dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 18px;
+      right: 18px;
+      background: #1e2532;
+      border: 1px solid var(--border-accent);
+      border-radius: var(--radius-md);
+      max-height: 340px;
+      overflow-y: auto;
+      z-index: 50;
+      box-shadow: var(--shadow-lg);
+      display: none;
+    }
+
+    .search-dropdown.open {
+      display: block;
+    }
+
+    .search-item {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .search-item:last-child {
+      border-bottom: none;
+    }
+
+    .search-item:hover, .search-item.highlighted {
+      background: rgba(212, 163, 115, 0.15);
+    }
+
+    .search-item-name {
+      font-weight: 600;
+      font-size: 0.88rem;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .search-item-tree-badge {
+      font-size: 0.68rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent-blue);
+      font-weight: 500;
+    }
+
+    .search-item-details {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      margin-top: 3px;
+      line-height: 1.3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .search-no-results {
+      padding: 16px;
+      text-align: center;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    /* Navigation Sections */
+    .sidebar-scrollable {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .section-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--accent-gold);
+      font-weight: 700;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tree-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .tree-card {
+      padding: 12px 14px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .tree-card:hover {
+      background: var(--bg-card-hover);
+      border-color: #4b5563;
+      transform: translateY(-1px);
+    }
+
+    .tree-card.active {
+      background: var(--bg-card-active);
+      border-color: var(--accent-gold);
+      box-shadow: 0 0 0 1px var(--accent-gold), 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .tree-card.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: var(--accent-gold);
+      border-radius: 4px 0 0 4px;
+    }
+
+    .tree-card-title {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 4px;
+      line-height: 1.3;
+    }
+
+    .tree-card-meta {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .tree-card-tags {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      font-size: 0.66rem;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .tree-card.active .tag {
+      background: rgba(212, 163, 115, 0.2);
+      color: var(--accent-gold);
+    }
+
+    /* Print Download Card */
+    .print-card {
+      background: linear-gradient(180deg, #242c3b 0%, #1c2330 100%);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .print-card-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .print-card-desc {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .btn-download {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      background: var(--accent-gold);
+      color: #12151b;
+      font-weight: 600;
+      font-size: 0.82rem;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 10px rgba(212, 163, 115, 0.25);
+    }
+
+    .btn-download:hover {
+      background: var(--accent-gold-hover);
+      box-shadow: 0 6px 14px rgba(212, 163, 115, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .print-meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      background: rgba(0, 0, 0, 0.25);
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+    }
+
+    .print-meta-grid strong {
+      color: var(--text-main);
+    }
+
+    /* Mobile Header & Toggle */
+    .mobile-header {
+      display: none;
+      height: var(--header-height);
+      background: var(--bg-sidebar);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 0 16px;
+      align-items: center;
+      justify-content: space-between;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 40;
+    }
+
+    .btn-menu-toggle {
+      background: none;
+      border: none;
+      color: var(--text-main);
+      font-size: 1.4rem;
+      cursor: pointer;
+      padding: 8px;
+    }
+
+    .mobile-title {
+      font-family: 'Cinzel', serif;
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    /* ==========================================================================
+       Main Viewport Canvas
+       ========================================================================== */
+    .viewport {
+      flex: 1;
+      position: relative;
+      background-color: var(--bg-canvas);
+      overflow: hidden;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .viewport:active {
+      cursor: grabbing;
+    }
+
+    .svg-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      transform-origin: 0 0;
+      will-change: transform;
+    }
+
+    .svg-container svg {
+      display: block;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+      background: #ffffff;
+      border-radius: 4px;
+    }
+
+    /* Loading Overlay */
+    .loading-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(18, 21, 27, 0.85);
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      z-index: 25;
+      transition: opacity 0.3s;
+    }
+
+    .loading-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .spinner {
+      width: 44px;
+      height: 44px;
+      border: 3px solid rgba(212, 163, 115, 0.2);
+      border-top-color: var(--accent-gold);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* Instructions Toast */
+    .guide-toast {
+      position: absolute;
+      top: 18px;
+      left: 20px;
+      background: rgba(24, 29, 38, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-subtle);
+      padding: 8px 14px;
+      border-radius: var(--radius-md);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      z-index: 20;
+      pointer-events: none;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .guide-toast span {
+      color: var(--accent-gold);
+      font-weight: 600;
+    }
+
+    /* Zoom Controls Floating Bar */
+    .controls-overlay {
+      position: absolute;
+      bottom: 24px;
+      right: 24px;
+      background: rgba(24, 29, 38, 0.9);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 6px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      z-index: 20;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .ctrl-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: var(--radius-md);
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-main);
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+    }
+
+    .ctrl-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--border-subtle);
+    }
+
+    .ctrl-btn:active {
+      transform: scale(0.95);
+    }
+
+    .zoom-level-badge {
+      font-size: 0.8rem;
+      font-weight: 600;
+      min-width: 54px;
+      text-align: center;
+      color: var(--accent-gold);
+      padding: 0 4px;
+    }
+
+    .ctrl-divider {
+      width: 1px;
+      height: 22px;
+      background: var(--border-subtle);
+      margin: 0 2px;
+    }
+
+    /* Person Focus Card (Floating over viewport when person clicked) */
+    .person-modal {
+      position: absolute;
+      bottom: 24px;
+      left: 24px;
+      background: rgba(24, 29, 38, 0.95);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-accent);
+      border-radius: var(--radius-lg);
+      padding: 16px 20px;
+      max-width: 380px;
+      z-index: 25;
+      box-shadow: var(--shadow-lg);
+      display: none;
+      animation: slideUp 0.3s ease;
+    }
+
+    .person-modal.open {
+      display: block;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .person-modal-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .person-modal-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .btn-close-modal {
+      background: none;
+      border: none;
+      color: var(--text-subtle);
+      font-size: 1.2rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .btn-close-modal:hover {
+      color: var(--text-main);
+    }
+
+    .person-modal-details {
+      margin-top: 8px;
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    /* Pulsing Highlight Box in SVG */
+    .person-target-ring {
+      position: absolute;
+      border: 3px solid #f59e0b;
+      border-radius: 8px;
+      box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.4), 0 0 35px rgba(245, 158, 11, 0.7);
+      pointer-events: none;
+      z-index: 15;
+      animation: pulseTarget 2.5s ease-out infinite;
+    }
+
+    @keyframes pulseTarget {
+      0% {
+        box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.7), 0 0 20px rgba(245, 158, 11, 0.8);
+      }
+      50% {
+        box-shadow: 0 0 0 10px rgba(245, 158, 11, 0.2), 0 0 40px rgba(245, 158, 11, 0.5);
+      }
+      100% {
+        box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.7), 0 0 20px rgba(245, 158, 11, 0.8);
+      }
+    }
+
+    /* Mobile Responsive adjustments */
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+      }
+
+      .mobile-header {
+        display: flex;
+      }
+
+      .sidebar {
+        position: fixed;
+        top: var(--header-height);
+        left: 0;
+        bottom: 0;
+        transform: translateX(-100%);
+        width: 100vw;
+        min-width: 100vw;
+      }
+
+      .sidebar.mobile-open {
+        transform: translateX(0);
+      }
+
+      .viewport {
+        margin-top: var(--header-height);
+        height: calc(100vh - var(--header-height));
+      }
+
+      .guide-toast {
+        display: none;
+      }
+
+      .controls-overlay {
+        bottom: 16px;
+        right: 16px;
+      }
+
+      .person-modal {
+        left: 16px;
+        right: 16px;
+        bottom: 76px;
+        max-width: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Mobile Top Bar -->
+  <header class="mobile-header">
+    <button class="btn-menu-toggle" id="mobileMenuBtn" aria-label="Toggle Navigation">☰</button>
+    <div class="mobile-title">Grannie's Trees</div>
+    <div style="width: 32px;"></div>
+  </header>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-brand">
+        <span class="brand-icon">📜</span>
+        <h1>Grannie's Family Trees</h1>
+      </div>
+      <p>Interactive Vector Atlas & Name Search</p>
+    </div>
+
+    <!-- Search Box with Autocomplete -->
+    <div class="search-container">
+      <div class="search-input-wrapper">
+        <span class="search-icon">🔍</span>
+        <input 
+          type="text" 
+          id="searchInput" 
+          class="search-input" 
+          placeholder="Search any family member name..." 
+          autocomplete="off"
+          spellcheck="false"
+        >
+        <button id="searchClear" class="search-clear" title="Clear Search">×</button>
+      </div>
+
+      <!-- Autocomplete Dropdown List -->
+      <div id="searchDropdown" class="search-dropdown"></div>
+    </div>
+
+    <div class="sidebar-scrollable">
+      <!-- Tree Selector -->
+      <div>
+        <div class="section-label">🌳 Select Family Tree Chart (5)</div>
+        <div class="tree-cards" id="treeCards">
+          <!-- Injected dynamically via JS -->
+        </div>
+      </div>
+
+      <!-- Printable Download Section -->
+      <div>
+        <div class="section-label">🖨 Printable Home Tiled PDF</div>
+        <div class="print-card" id="printCard">
+          <div class="print-card-title">
+            <span>📄</span>
+            <span id="printTreeTitle">Letter-Size Printable Tiles</span>
+          </div>
+          <p class="print-card-desc">
+            Download this tree split into standard 8.5"×11" letter sheets at <strong>1:1 original scale</strong> with overlapping borders and column/row grid marks.
+          </p>
+          <div class="print-meta-grid">
+            <div>Sheet Count: <strong id="printSheetCount">49 Pages</strong></div>
+            <div>Grid Pattern: <strong id="printGridSize">7 × 7 Grid</strong></div>
+            <div>Paper Size: <strong>Letter (11"×8.5")</strong></div>
+            <div>Overlap: <strong>0.5" Margins</strong></div>
+          </div>
+          <a id="printDownloadBtn" href="tiles/000059_printable_tiles.pdf" target="_blank" download class="btn-download">
+            📥 Download Printable Tiles PDF
+          </a>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Viewport Canvas -->
+  <main class="viewport" id="viewport">
+    <!-- Helpful tip toast -->
+    <div class="guide-toast">
+      <span>💡 Navigation:</span> Drag to pan • Scroll / Pinch to zoom • Type a name in search to snap
+    </div>
+
+    <!-- Loading Spinner Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+      <div class="spinner"></div>
+      <div class="loading-text" id="loadingText">Rendering crisp vector tree...</div>
+    </div>
+
+    <!-- Dynamic SVG Layer -->
+    <div class="svg-container" id="svgContainer"></div>
+
+    <!-- Person Modal (Displays when zoomed to person) -->
+    <div class="person-modal" id="personModal">
+      <div class="person-modal-header">
+        <div class="person-modal-name" id="modalPersonName">Marion Parker Inglis</div>
+        <button class="btn-close-modal" id="modalCloseBtn">✕</button>
+      </div>
+      <div class="person-modal-details" id="modalPersonDetails">
+        Birth: Feb 2, 1909 • Glasgow, Lanarkshire, Scotland
+      </div>
+    </div>
+
+    <!-- Zoom & Navigation Floating Controls -->
+    <div class="controls-overlay">
+      <button class="ctrl-btn" id="btnZoomOut" title="Zoom Out ( - )">−</button>
+      <span class="zoom-level-badge" id="zoomLevelText">100%</span>
+      <button class="ctrl-btn" id="btnZoomIn" title="Zoom In ( + )">+</button>
+      <div class="ctrl-divider"></div>
+      <button class="ctrl-btn" id="btnFit" title="Fit Entire Tree to Screen ( F )">⤢</button>
+      <button class="ctrl-btn" id="btnReset" title="Reset View ( 0 )">⟲</button>
+    </div>
+  </main>
+
+  <script>
+    // ==========================================================================
+    // State & Data
+    // ==========================================================================
+    let treesData = [];
+    let searchIndex = {};
+    let currentTreeIndex = 0;
+
+    // Viewport transform state
+    let tx = 0;
+    let ty = 0;
+    let scale = 1;
+    let minScale = 0.05;
+    let maxScale = 12.0;
+
+    let isDragging = false;
+    let dragStartX = 0;
+    let dragStartY = 0;
+
+    // Multi-touch gestures
+    let activeTouches = {};
+    let initialPinchDist = null;
+    let initialPinchScale = 1;
+    let initialPinchCenter = { x: 0, y: 0 };
+
+    // DOM Elements
+    const viewport = document.getElementById('viewport');
+    const svgContainer = document.getElementById('svgContainer');
+    const treeCardsContainer = document.getElementById('treeCards');
+    const searchInput = document.getElementById('searchInput');
+    const searchDropdown = document.getElementById('searchDropdown');
+    const searchClear = document.getElementById('searchClear');
+    const zoomLevelText = document.getElementById('zoomLevelText');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const loadingText = document.getElementById('loadingText');
+    const personModal = document.getElementById('personModal');
+    const modalPersonName = document.getElementById('modalPersonName');
+    const modalPersonDetails = document.getElementById('modalPersonDetails');
+    const modalCloseBtn = document.getElementById('modalCloseBtn');
+    const printTreeTitle = document.getElementById('printTreeTitle');
+    const printSheetCount = document.getElementById('printSheetCount');
+    const printGridSize = document.getElementById('printGridSize');
+    const printDownloadBtn = document.getElementById('printDownloadBtn');
+    const sidebar = document.getElementById('sidebar');
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+
+    // ==========================================================================
+    // Initialization
+    // ==========================================================================
+    async function init() {
+      try {
+        // Fetch metadata & search index
+        const [metaRes, indexRes] = await Promise.all([
+          fetch('trees_meta.json'),
+          fetch('search_index.json')
+        ]);
+        
+        treesData = await metaRes.json();
+        searchIndex = await indexRes.json();
+
+        renderTreeCards();
+        setupEventListeners();
+        
+        // Load initial tree (Marion Parker Inglis Full Tree)
+        await switchTree(0);
+      } catch (err) {
+        console.error('Initialization error:', err);
+        loadingText.textContent = 'Failed to load tree data. Please refresh.';
+      }
+    }
+
+    function renderTreeCards() {
+      treeCardsContainer.innerHTML = '';
+      treesData.forEach((tree, idx) => {
+        const card = document.createElement('div');
+        card.className = `tree-card ${idx === currentTreeIndex ? 'active' : ''}`;
+        card.innerHTML = `
+          <div class="tree-card-title">${tree.name}</div>
+          <div class="tree-card-meta">
+            <div>${tree.subtitle}</div>
+          </div>
+          <div class="tree-card-tags">
+            <span class="tag">👥 ${tree.person_count} People</span>
+            <span class="tag">📐 ${tree.width_in}" × ${tree.height_in}"</span>
+            <span class="tag">📄 ${tree.tile_pages} Tiles</span>
+          </div>
+        `;
+        card.addEventListener('click', () => {
+          if (currentTreeIndex !== idx) {
+            switchTree(idx);
+            if (window.innerWidth <= 768) {
+              sidebar.classList.remove('mobile-open');
+            }
+          }
+        });
+        treeCardsContainer.appendChild(card);
+      });
+    }
+
+    // ==========================================================================
+    // Tree Loading & SVG Injection
+    // ==========================================================================
+    async function switchTree(idx) {
+      currentTreeIndex = idx;
+      const tree = treesData[idx];
+      
+      // Update UI cards
+      document.querySelectorAll('.tree-card').forEach((c, i) => {
+        c.classList.toggle('active', i === idx);
+      });
+
+      // Update print card
+      printTreeTitle.textContent = tree.name;
+      printSheetCount.textContent = `${tree.tile_pages} Pages`;
+      const gridW = Math.ceil(tree.svg_width_pt / 648);
+      const gridH = Math.ceil(tree.svg_height_pt / 468);
+      printGridSize.textContent = `${gridW} × ${gridH} Grid`;
+      printDownloadBtn.href = tree.tile_pdf;
+
+      // Close person modal & clear highlights
+      closePersonModal();
+      clearHighlightRing();
+
+      // Show loader
+      loadingOverlay.classList.remove('hidden');
+      loadingText.textContent = `Loading ${tree.name}...`;
+
+      try {
+        const res = await fetch(tree.svg_file);
+        const svgContent = await res.text();
+        
+        svgContainer.innerHTML = svgContent;
+        const svgEl = svgContainer.querySelector('svg');
+        if (svgEl) {
+          svgEl.style.width = `${tree.svg_width_pt}px`;
+          svgEl.style.height = `${tree.svg_height_pt}px`;
+        }
+
+        // Fit newly loaded tree to viewport
+        fitToScreen(false);
+      } catch (err) {
+        console.error('Error loading SVG:', err);
+      } finally {
+        loadingOverlay.classList.add('hidden');
+      }
+    }
+
+    // ==========================================================================
+    // Transform & Viewport Manipulation
+    // ==========================================================================
+    function updateTransform(animate = false) {
+      if (animate) {
+        svgContainer.style.transition = 'transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        setTimeout(() => { svgContainer.style.transition = ''; }, 460);
+      } else {
+        svgContainer.style.transition = '';
+      }
+      svgContainer.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+      zoomLevelText.textContent = `${Math.round(scale * 100)}%`;
+    }
+
+    function fitToScreen(animate = true) {
+      const tree = treesData[currentTreeIndex];
+      if (!tree) return;
+
+      const vw = viewport.clientWidth;
+      const vh = viewport.clientHeight;
+      const pad = 40;
+
+      const scaleX = (vw - pad * 2) / tree.svg_width_pt;
+      const scaleY = (vh - pad * 2) / tree.svg_height_pt;
+      scale = Math.min(scaleX, scaleY);
+      minScale = scale * 0.4;
+
+      tx = (vw - tree.svg_width_pt * scale) / 2;
+      ty = (vh - tree.svg_height_pt * scale) / 2;
+
+      updateTransform(animate);
+    }
+
+    function zoomToPoint(deltaFactor, centerX, centerY) {
+      const oldScale = scale;
+      const targetScale = Math.max(minScale, Math.min(maxScale, scale * deltaFactor));
+      
+      tx = centerX - (centerX - tx) * (targetScale / oldScale);
+      ty = centerY - (centerY - ty) * (targetScale / oldScale);
+      scale = targetScale;
+
+      updateTransform(false);
+    }
+
+    function snapToPerson(person, treeIdx) {
+      if (treeIdx !== currentTreeIndex) {
+        switchTree(treeIdx).then(() => {
+          performSnap(person);
+        });
+      } else {
+        performSnap(person);
+      }
+    }
+
+    function performSnap(person) {
+      const tree = treesData[currentTreeIndex];
+      const vw = viewport.clientWidth;
+      const vh = viewport.clientHeight;
+
+      // Target scale for comfortable reading of 9pt text: ~2.5x to 3.5x
+      const targetScale = Math.min(maxScale, 3.2);
+
+      // Person coordinates in SVG points
+      const personX = person.x * tree.svg_width_pt;
+      const personY = person.y * tree.svg_height_pt;
+
+      scale = targetScale;
+      tx = (vw / 2) - (personX * scale);
+      ty = (vh / 2) - (personY * scale);
+
+      updateTransform(true);
+
+      // Highlight person box
+      highlightPersonBox(personX, personY);
+
+      // Show info modal
+      modalPersonName.textContent = person.name;
+      modalPersonDetails.textContent = person.details || 'Scottish lineage member';
+      personModal.classList.add('open');
+    }
+
+    function highlightPersonBox(svgX, svgY) {
+      clearHighlightRing();
+
+      const ring = document.createElement('div');
+      ring.className = 'person-target-ring';
+      ring.id = 'activeTargetRing';
+      
+      // Box dimensions scaled
+      const boxW = 160;
+      const boxH = 90;
+      
+      ring.style.width = `${boxW}px`;
+      ring.style.height = `${boxH}px`;
+      ring.style.left = `${svgX - boxW / 2}px`;
+      ring.style.top = `${svgY - 15}px`;
+
+      svgContainer.appendChild(ring);
+    }
+
+    function clearHighlightRing() {
+      const old = document.getElementById('activeTargetRing');
+      if (old) old.remove();
+    }
+
+    function closePersonModal() {
+      personModal.classList.remove('open');
+      clearHighlightRing();
+    }
+
+    // ==========================================================================
+    // Search Autocomplete & Filtering
+    // ==========================================================================
+    function setupSearch() {
+      searchInput.addEventListener('input', (e) => {
+        const query = e.target.value.trim().toLowerCase();
+        if (!query) {
+          searchDropdown.classList.remove('open');
+          searchClear.style.display = 'none';
+          return;
+        }
+
+        searchClear.style.display = 'block';
+
+        // Search across all trees
+        const matches = [];
+        treesData.forEach((tree, treeIdx) => {
+          const list = searchIndex[tree.id] || [];
+          list.forEach(p => {
+            const nameMatch = p.name.toLowerCase().includes(query);
+            const detailMatch = p.details.toLowerCase().includes(query);
+            if (nameMatch || detailMatch) {
+              matches.push({
+                person: p,
+                treeIdx: treeIdx,
+                treeName: tree.name,
+                isCurrentTree: treeIdx === currentTreeIndex
+              });
+            }
+          });
+        });
+
+        // Prioritize matches in current tree, then name matches
+        matches.sort((a, b) => {
+          if (a.isCurrentTree && !b.isCurrentTree) return -1;
+          if (!a.isCurrentTree && b.isCurrentTree) return 1;
+          return a.person.name.localeCompare(b.person.name);
+        });
+
+        renderSearchResults(matches.slice(0, 12), query);
+      });
+
+      searchClear.addEventListener('click', () => {
+        searchInput.value = '';
+        searchDropdown.classList.remove('open');
+        searchClear.style.display = 'none';
+        searchInput.focus();
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.search-container')) {
+          searchDropdown.classList.remove('open');
+        }
+      });
+    }
+
+    function renderSearchResults(results, query) {
+      searchDropdown.innerHTML = '';
+      if (results.length === 0) {
+        searchDropdown.innerHTML = `<div class="search-no-results">No family members found matching "${query}"</div>`;
+        searchDropdown.classList.add('open');
+        return;
+      }
+
+      results.forEach(res => {
+        const item = document.createElement('div');
+        item.className = 'search-item';
+        
+        // Highlight query in name
+        const regex = new RegExp(`(${query})`, 'gi');
+        const highlightedName = res.person.name.replace(regex, '<strong style="color: var(--accent-gold);">$1</strong>');
+
+        item.innerHTML = `
+          <div class="search-item-name">
+            <span>${highlightedName}</span>
+            <span class="search-item-tree-badge">${res.treeName.split(' ')[0]} ${res.treeName.split(' ')[1]}</span>
+          </div>
+          <div class="search-item-details">${res.person.details || 'Lineage record'}</div>
+        `;
+
+        item.addEventListener('click', () => {
+          searchDropdown.classList.remove('open');
+          snapToPerson(res.person, res.treeIdx);
+          if (window.innerWidth <= 768) {
+            sidebar.classList.remove('mobile-open');
+          }
+        });
+
+        searchDropdown.appendChild(item);
+      });
+
+      searchDropdown.classList.add('open');
+    }
+
+    // ==========================================================================
+    // Event Listeners (Mouse, Touch, Keyboard)
+    // ==========================================================================
+    function setupEventListeners() {
+      setupSearch();
+
+      // Mouse drag panning
+      viewport.addEventListener('mousedown', (e) => {
+        if (e.target.closest('.controls-overlay') || e.target.closest('.person-modal')) return;
+        isDragging = true;
+        dragStartX = e.clientX - tx;
+        dragStartY = e.clientY - ty;
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        tx = e.clientX - dragStartX;
+        ty = e.clientY - dragStartY;
+        updateTransform(false);
+      });
+
+      window.addEventListener('mouseup', () => {
+        isDragging = false;
+      });
+
+      // Mouse Wheel Zoom
+      viewport.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const rect = viewport.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        const factor = e.deltaY < 0 ? 1.15 : 0.87;
+        zoomToPoint(factor, mouseX, mouseY);
+      }, { passive: false });
+
+      // Touch Events for Mobile (Pan & Pinch Zoom)
+      viewport.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+          isDragging = true;
+          dragStartX = e.touches[0].clientX - tx;
+          dragStartY = e.touches[0].clientY - ty;
+        } else if (e.touches.length === 2) {
+          isDragging = false;
+          const t1 = e.touches[0];
+          const t2 = e.touches[1];
+          initialPinchDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+          initialPinchScale = scale;
+          initialPinchCenter = {
+            x: (t1.clientX + t2.clientX) / 2,
+            y: (t1.clientY + t2.clientY) / 2
+          };
+        }
+      }, { passive: true });
+
+      viewport.addEventListener('touchmove', (e) => {
+        if (e.touches.length === 1 && isDragging) {
+          tx = e.touches[0].clientX - dragStartX;
+          ty = e.touches[0].clientY - dragStartY;
+          updateTransform(false);
+        } else if (e.touches.length === 2 && initialPinchDist) {
+          const t1 = e.touches[0];
+          const t2 = e.touches[1];
+          const currentDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+          const factor = currentDist / initialPinchDist;
+          
+          const newScale = Math.max(minScale, Math.min(maxScale, initialPinchScale * factor));
+          const rect = viewport.getBoundingClientRect();
+          const centerX = initialPinchCenter.x - rect.left;
+          const centerY = initialPinchCenter.y - rect.top;
+          
+          tx = centerX - (centerX - tx) * (newScale / scale);
+          ty = centerY - (centerY - ty) * (newScale / scale);
+          scale = newScale;
+
+          updateTransform(false);
+        }
+      }, { passive: true });
+
+      viewport.addEventListener('touchend', (e) => {
+        if (e.touches.length === 0) {
+          isDragging = false;
+          initialPinchDist = null;
+        }
+      });
+
+      // Controls Buttons
+      document.getElementById('btnZoomIn').addEventListener('click', () => {
+        zoomToPoint(1.3, viewport.clientWidth / 2, viewport.clientHeight / 2);
+      });
+
+      document.getElementById('btnZoomOut').addEventListener('click', () => {
+        zoomToPoint(0.75, viewport.clientWidth / 2, viewport.clientHeight / 2);
+      });
+
+      document.getElementById('btnFit').addEventListener('click', () => fitToScreen(true));
+      document.getElementById('btnReset').addEventListener('click', () => {
+        scale = 1.0;
+        const tree = treesData[currentTreeIndex];
+        tx = (viewport.clientWidth - tree.svg_width_pt) / 2;
+        ty = (viewport.clientHeight - tree.svg_height_pt) / 2;
+        updateTransform(true);
+      });
+
+      // Modal Close
+      modalCloseBtn.addEventListener('click', closePersonModal);
+
+      // Mobile Menu Toggle
+      mobileMenuBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('mobile-open');
+      });
+
+      // Keyboard Shortcuts
+      window.addEventListener('keydown', (e) => {
+        if (document.activeElement === searchInput) return;
+
+        if (e.key === '+' || e.key === '=') {
+          zoomToPoint(1.25, viewport.clientWidth / 2, viewport.clientHeight / 2);
+        } else if (e.key === '-' || e.key === '_') {
+          zoomToPoint(0.8, viewport.clientWidth / 2, viewport.clientHeight / 2);
+        } else if (e.key === 'f' || e.key === 'F') {
+          fitToScreen(true);
+        } else if (e.key === '0') {
+          fitToScreen(true);
+        } else if (e.key === 'Escape') {
+          closePersonModal();
+          searchDropdown.classList.remove('open');
+        } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+          tx -= 50; updateTransform(false);
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+          tx += 50; updateTransform(false);
+        }
+      });
+
+      // Window resize
+      window.addEventListener('resize', () => {
+        fitToScreen(false);
+      });
+    }
+
+    // Start App
+    init();
+  </script>
+</body>
+</html>

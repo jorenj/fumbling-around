@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grannie's Family Trees - Complete Graphic Tree Atlas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --panel-bg: #1e293b;
+      --panel-border: #334155;
+      --accent: #38bdf8;
+      --accent-hover: #0284c7;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --sidebar-width: 360px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      height: 100vh;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: var(--sidebar-width);
+      background-color: var(--panel-bg);
+      border-right: 1px solid var(--panel-border);
+      display: flex;
+      flex-direction: column;
+      z-index: 10;
+      box-shadow: 4px 0 24px rgba(0,0,0,0.3);
+    }
+
+    .sidebar-header {
+      padding: 18px 20px 12px 20px;
+      border-bottom: 1px solid var(--panel-border);
+    }
+
+    .sidebar-header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.25rem;
+      color: #ffffff;
+      margin-bottom: 4px;
+    }
+
+    .sidebar-header p {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      line-height: 1.35;
+    }
+
+    .tree-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .tree-card {
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid transparent;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tree-card:hover {
+      background: rgba(255,255,255,0.07);
+      border-color: var(--panel-border);
+    }
+
+    .tree-card.active {
+      background: rgba(56, 189, 248, 0.12);
+      border-color: var(--accent);
+    }
+
+    .tree-card h3 {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 4px;
+    }
+
+    .tree-card .meta {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .badge {
+      display: inline-block;
+      align-self: flex-start;
+      margin-top: 4px;
+      padding: 2px 8px;
+      font-size: 0.65rem;
+      font-weight: 600;
+      border-radius: 12px;
+      background: rgba(56, 189, 248, 0.2);
+      color: var(--accent);
+    }
+
+    /* Print Formats Section */
+    .print-section {
+      padding: 12px 14px;
+      border-top: 1px solid var(--panel-border);
+      background: rgba(0,0,0,0.25);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+
+    .print-section h4 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--accent);
+      margin-bottom: 2px;
+    }
+
+    .btn-fmt {
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 8px;
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--panel-border);
+      color: var(--text-main);
+      font-weight: 500;
+      font-size: 0.78rem;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .btn-fmt:hover {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: var(--accent);
+      color: #ffffff;
+    }
+
+    .btn-fmt.primary {
+      background: var(--accent);
+      color: #0f172a;
+      font-weight: 600;
+      border: none;
+    }
+
+    .btn-fmt.primary:hover {
+      background: #7dd3fc;
+    }
+
+    /* Viewport */
+    .viewport-container {
+      flex: 1;
+      position: relative;
+      background: #090d16;
+      overflow: hidden;
+      cursor: grab;
+    }
+
+    .viewport-container:active {
+      cursor: grabbing;
+    }
+
+    .tree-image {
+      position: absolute;
+      transform-origin: 0 0;
+      user-select: none;
+      pointer-events: none;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      border-radius: 4px;
+    }
+
+    /* Controls Overlay */
+    .controls-overlay {
+      position: absolute;
+      bottom: 24px;
+      right: 24px;
+      background: rgba(30, 41, 59, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 6px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      z-index: 20;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    .ctrl-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: var(--text-main);
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
+
+    .ctrl-btn:hover {
+      background: rgba(255,255,255,0.1);
+    }
+
+    .zoom-level {
+      font-size: 0.8rem;
+      font-weight: 600;
+      min-width: 50px;
+      text-align: center;
+      color: var(--text-muted);
+    }
+
+    .info-toast {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(30, 41, 59, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--panel-border);
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      z-index: 20;
+      pointer-events: none;
+    }
+
+    .info-toast span {
+      color: var(--accent);
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h1>Grannie's Family Trees</h1>
+      <p>100% Complete Graphic Tree Atlas</p>
+    </div>
+
+    <div class="tree-list" id="treeList">
+      <!-- Generated via JS -->
+    </div>
+
+    <div class="print-section">
+      <h4>📖 Complete Large-Print Tree Atlas</h4>
+
+      <a href="printer_friendly_formats/Grannies_Complete_Graphic_Tree_Atlas_Letter.pdf" target="_blank" class="btn-fmt primary">
+        🌳 Complete Tree Atlas (8.5"×11" Letter - 14pt BOLD Text)
+      </a>
+
+      <a href="printer_friendly_formats/Grannies_Complete_Graphic_Tree_Atlas_Tabloid.pdf" target="_blank" class="btn-fmt">
+        🔍 Complete Tree Atlas (11"×17" Tabloid - 18pt BOLD Text)
+      </a>
+    </div>
+  </aside>
+
+  <!-- Viewport -->
+  <main class="viewport-container" id="viewport">
+    <div class="info-toast">
+      Tip: <span>Scroll wheel / Pinch</span> to zoom • <span>Drag</span> to pan across chart
+    </div>
+
+    <img id="treeImg" class="tree-image" src="" alt="Family Tree">
+
+    <div class="controls-overlay">
+      <button class="ctrl-btn" id="zoomOut" title="Zoom Out">−</button>
+      <span class="zoom-level" id="zoomVal">100%</span>
+      <button class="ctrl-btn" id="zoomIn" title="Zoom In">+</button>
+      <button class="ctrl-btn" id="zoomReset" title="Reset View">⟲</button>
+      <button class="ctrl-btn" id="zoomFit" title="Fit to Screen">⤢</button>
+    </div>
+  </main>
+
+  <script>
+    const trees = [
+      {
+        id: "000059",
+        name: "Marion Parker Inglis Branch (Full Tree)",
+        subject: "Marion Parker Inglis (b. 1909, Glasgow)",
+        dimensions: "62.7\" × 46.0\" (5.2 ft wide)",
+        sheets: "49 Letter Sheets (7×7 Grid)",
+        img: "web_images/000059_94254091rdg39966w5890t_A.png"
+      },
+      {
+        id: "000061",
+        name: "Thomas Kinlay Johnston Branch (Panoramic)",
+        subject: "Thomas Kinlay Johnston (b. 1913, Fife)",
+        dimensions: "151.2\" × 37.6\" (12.6 ft wide!)",
+        sheets: "96 Letter Sheets (16×6 Grid)",
+        img: "web_images/000061_762453ldc65q126fw5lv98_A.png"
+      },
+      {
+        id: "000067",
+        name: "Marion Parker Inglis (Ancestry Chart)",
+        subject: "Marion Parker Inglis (b. 1909, Lanarkshire)",
+        dimensions: "54.4\" × 39.3\" (4.5 ft wide)",
+        sheets: "36 Letter Sheets (6×6 Grid)",
+        img: "web_images/000067_222401i6396f79e5bznd7b_A.png"
+      },
+      {
+        id: "000069",
+        name: "John Inglis Branch",
+        subject: "John Inglis (b. 1872, Roxburgh)",
+        dimensions: "43.6\" × 35.8\" (3.6 ft wide)",
+        sheets: "30 Letter Sheets (5×6 Grid)",
+        img: "web_images/000069_011201c6d3z98f777bt629_A.png"
+      },
+      {
+        id: "000071",
+        name: "Thomas Kinlay Johnston (Compact Tree)",
+        subject: "Thomas Kinlay Johnston (b. 1913, Fife)",
+        dimensions: "40.9\" × 27.7\" (3.4 ft wide)",
+        sheets: "20 Letter Sheets (5×4 Grid)",
+        img: "web_images/000071_77048093bwa928agcd8b62_A.png"
+      }
+    ];
+
+    let currentIdx = 0;
+    let scale = 1;
+    let posX = 0;
+    let posY = 0;
+    let isDragging = false;
+    let startX = 0, startY = 0;
+
+    const viewport = document.getElementById('viewport');
+    const treeImg = document.getElementById('treeImg');
+    const treeList = document.getElementById('treeList');
+    const zoomVal = document.getElementById('zoomVal');
+
+    function renderTreeList() {
+      treeList.innerHTML = '';
+      trees.forEach((item, idx) => {
+        const card = document.createElement('div');
+        card.className = `tree-card ${idx === currentIdx ? 'active' : ''}`;
+        card.innerHTML = `
+          <h3>${item.name}</h3>
+          <div class="meta">
+            <div><strong>Subject:</strong> ${item.subject}</div>
+            <div><strong>Original:</strong> ${item.dimensions}</div>
+          </div>
+          <div class="badge">${item.sheets}</div>
+        `;
+        card.addEventListener('click', () => selectTree(idx));
+        treeList.appendChild(card);
+      });
+    }
+
+    function selectTree(idx) {
+      currentIdx = idx;
+      renderTreeList();
+      const item = trees[idx];
+      treeImg.src = item.img;
+
+      treeImg.onload = () => {
+        fitToScreen();
+      };
+    }
+
+    function updateTransform() {
+      treeImg.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
+      zoomVal.textContent = `${Math.round(scale * 100)}%`;
+    }
+
+    function fitToScreen() {
+      const vw = viewport.clientWidth;
+      const vh = viewport.clientHeight;
+      const iw = treeImg.naturalWidth || 1000;
+      const ih = treeImg.naturalHeight || 800;
+
+      const scaleX = (vw - 80) / iw;
+      const scaleY = (vh - 80) / ih;
+      scale = Math.min(scaleX, scaleY, 1.0);
+
+      posX = (vw - iw * scale) / 2;
+      posY = (vh - ih * scale) / 2;
+      updateTransform();
+    }
+
+    function zoom(deltaScale, zoomCenterX, zoomCenterY) {
+      const oldScale = scale;
+      scale = Math.max(0.1, Math.min(5.0, scale * deltaScale));
+      
+      if (zoomCenterX !== undefined && zoomCenterY !== undefined) {
+        posX = zoomCenterX - (zoomCenterX - posX) * (scale / oldScale);
+        posY = zoomCenterY - (zoomCenterY - posY) * (scale / oldScale);
+      }
+      updateTransform();
+    }
+
+    // Event Listeners
+    viewport.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.controls-overlay')) return;
+      isDragging = true;
+      startX = e.clientX - posX;
+      startY = e.clientY - posY;
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      posX = e.clientX - startX;
+      posY = e.clientY - startY;
+      updateTransform();
+    });
+
+    window.addEventListener('mouseup', () => {
+      isDragging = false;
+    });
+
+    viewport.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const rect = viewport.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+      const factor = e.deltaY < 0 ? 1.15 : 0.85;
+      zoom(factor, mouseX, mouseY);
+    }, { passive: false });
+
+    document.getElementById('zoomIn').addEventListener('click', () => zoom(1.25));
+    document.getElementById('zoomOut').addEventListener('click', () => zoom(0.8));
+    document.getElementById('zoomReset').addEventListener('click', () => { scale = 1; posX = 50; posY = 50; updateTransform(); });
+    document.getElementById('zoomFit').addEventListener('click', fitToScreen);
+
+    // Initial Load
+    selectTree(0);
+  </script>
+</body>
+</html>

@@ -1,0 +1,1472 @@
+0 HEAD
+1 SOUR GrannieFamilyTrees
+2 VERS 1.0
+1 GEDC
+2 VERS 5.5
+2 FORM LINEAGE-LINKED
+1 CHAR UTF-8
+0 @I1@ INDI
+1 NAME James /Inglis/
+1 BIRT
+2 DATE Before Feb 18 1705, Ewes, Dumfries, Scotland
+1 DEAT
+2 DATE May 23 1794, Mill holm, Roxburgh, Scotland, Great Britain
+0 @I2@ INDI
+1 NAME Jean /Riddell/
+1 BIRT
+2 DATE Apr 11 1707, East Kil bride, Lanarkshire, Scotland
+1 DEAT
+2 DATE 1780, Scotland
+0 @I3@ INDI
+1 NAME Agnes /Hatlie/
+1 BIRT
+2 DATE 1709, Duns, Berwickshire, Scotland
+0 @I4@ INDI
+1 NAME John /Moscrope/
+1 BIRT
+2 DATE 1709, Stapl eton, Cumberland, England.
+1 DEAT
+2 DATE About 1741, Shanksbridge End, Roxburghshire, Scotland
+0 @I5@ INDI
+1 NAME Robert /Wallace/
+1 BIRT
+2 DATE Jul 4 1720, Edinburgh Parish, Edinburgh, Midlothian, Scotland
+1 DEAT
+2 DATE Dec 17 1793
+0 @I6@ INDI
+1 NAME GEORGE /BRYDEN/
+1 BIRT
+2 DATE 1722, St. Boswell , Roxburgh, Scot, Scotland, United Kingdom
+1 DEAT
+2 DATE Apr 27 1800, Roxburghshire, Scotland
+0 @I7@ INDI
+1 NAME Lillias /GREIG/
+1 BIRT
+2 DATE Sep 3 1722, Largo, Fife
+1 DEAT
+2 DATE Scotland
+0 @I8@ INDI
+1 NAME Gabriel /Hall/
+1 BIRT
+2 DATE Before Jun 21 1724, El sdon, Northumberland, England
+1 DEAT
+2 DATE El sdon, Northumberland, England
+0 @I9@ INDI
+1 NAME John /Ballantyne/
+1 BIRT
+2 DATE 1725, Scotland
+1 DEAT
+2 DATE 1800, Roxburghshire, Scotland
+0 @I10@ INDI
+1 NAME Agnes /Kyle/
+1 BIRT
+2 DATE 1726, Saint Boswells, Roxburghshire, Borders, Scotland, United Kingdom
+1 DEAT
+2 DATE 1803, Roxborough
+0 @I11@ INDI
+1 NAME Elizabeth Isabella { Moscrope) /Robson/
+1 BIRT
+2 DATE Feb 21 1729, Duns, Berwick, Scotland
+1 DEAT
+2 DATE About 1822
+0 @I12@ INDI
+1 NAME Jane /Hedley/
+1 BIRT
+2 DATE 1730, Northumberland, England
+1 DEAT
+2 DATE 1759, Bell ingham, Northumberland, England
+0 @I13@ INDI
+1 NAME John Robson, /Cpl/
+1 BIRT
+2 DATE May 5 1730, Castleton Parish, Roxburghshire, Scotland
+1 DEAT
+2 DATE 1816, Merigomish, Pictou County, Nova Scotia, Canada
+0 @I14@ INDI
+1 NAME Renwick /Swinlay/
+1 BIRT
+2 DATE 1730, St Andrews Fife Scotland
+0 @I15@ INDI
+1 NAME Agnes /Bryden/
+1 BIRT
+2 DATE 1736, Mill nholm, Castleton, Roxburgh, Scotland, United Kingdom
+1 DEAT
+2 DATE Jun 16 1807, Mil nholm, Castleton, Roxburghshire, Scotland
+0 @I16@ INDI
+1 NAME Margaret /Robson/
+1 BIRT
+2 DATE Apr 12 1747, Roxburghshire, Scotland
+1 DEAT
+2 DATE Jul 15 1827, NewCastleton, Roxburghshire, Scotland
+0 @I17@ INDI
+1 NAME Francis /Ballentine/
+1 BIRT
+2 DATE 1749, Whithaughburn, Roxburghshire, Scotland
+1 DEAT
+2 DATE Feb 5 1834, NewCastleton, Roxburghshire, Scotland
+0 @I18@ INDI
+1 NAME John /Swinley/
+1 BIRT
+2 DATE 1754, Fife, Fifeshire, Scotland, United Kingdom
+1 DEAT
+2 DATE Nov 28 1806, Cults, Fifeshire, Scotland, United Kingdom
+0 @I19@ INDI
+1 NAME Euphemia /Dryburgh/
+1 BIRT
+2 DATE Dec 7 1755, Wemyss, Fifeshire, Scotland, United Kingdom
+0 @I20@ INDI
+1 NAME Catherine /Young/
+1 BIRT
+2 DATE Jul 10 1758, Perth Burgh, Perthshire, Scotland
+1 DEAT
+2 DATE Jan 12 1833, Markinch, Fife, Scotland
+0 @I21@ INDI
+1 NAME Andrew /Reid/
+1 BIRT
+2 DATE Nov 18 1759, Markinch, Fifeshire, Scotland, United Kingdom
+0 @I22@ INDI
+1 NAME Janet /Wallace/
+1 BIRT
+2 DATE Nov 29 1759, Fife, Fifeshire, Scotland, United Kingdom
+1 DEAT
+2 DATE Jun 27 1806, Cults, Fife, Scotland
+0 @I23@ INDI
+1 NAME Agnes /Ness/
+1 BIRT
+2 DATE About 1760, Fife
+0 @I24@ INDI
+1 NAME John /Hall/
+1 BIRT
+2 DATE 1760, Fal stone, Northumberland, England
+1 DEAT
+2 DATE May 26 1826, El sdon, Northumberland, England
+0 @I25@ INDI
+1 NAME Margaret /Clark/
+1 BIRT
+2 DATE 1760, Northumberland, England
+1 DEAT
+2 DATE Apr 1852, Gateshead, Durham
+0 @I26@ INDI
+1 NAME Thomas /More/
+1 BIRT
+2 DATE About 1760, Collessie, Fife
+0 @I27@ INDI
+1 NAME David /JOHNSTON/
+1 BIRT
+2 DATE Feb 4 1769, Auchtermuchty, Fife, Scotland
+1 DEAT
+2 DATE BUR 28 JAN 1844, Markinch, Fife, Scotland
+0 @I28@ INDI
+1 NAME William /Inglis/
+1 BIRT
+2 DATE Nov 10 1769, Mil nholm, Roxburghshire, Scotland
+1 DEAT
+2 DATE 1851, Minholm, Roxburghshire, Scotland
+0 @I29@ INDI
+1 NAME Elizabeth (Betty) /Ballantyne/
+1 BIRT
+2 DATE Aug 25 1776, Whithaughburn, Castleton, Roxburghshire, Scotland
+1 DEAT
+2 DATE Feb 27 1866, NewCastleton, Roxburghshire, Scotland
+0 @I30@ INDI
+1 NAME Elizabeth /Chalmers/
+1 BIRT
+2 DATE Jun 21 1776, Markinch, Fife
+1 DEAT
+2 DATE Feb 16 1861, Greene County, Ohio, Stevenson Cemetery
+0 @I31@ INDI
+1 NAME Robert /More/
+1 BIRT
+2 DATE Mar 11 1781, Markinch, Fife, Scotland
+1 DEAT
+2 DATE Jan 31 1844, Markinch, Fife, Scotland
+0 @I32@ INDI
+1 NAME Alexander /Kairns/
+1 BIRT
+2 DATE Nov 26 1786, Wemyss, Fifeshire, Scotland, United Kingdom
+0 @I33@ INDI
+1 NAME Thomas /Swinly/
+1 BIRT
+2 DATE 1787, Cults, Fife, Scotland
+1 DEAT
+2 DATE 1836, Cameron, Fife, Scotland
+0 @I34@ INDI
+1 NAME GRIZELor Grace /REID/
+1 BIRT
+2 DATE Dec 14 1788, Wemyss, Fife, Scotland
+1 DEAT
+2 DATE Feb 3 1865, Fife, Scotland
+0 @I35@ INDI
+1 NAME Agnes Helen /Murdoch/
+1 BIRT
+2 DATE Jan 4 1789, Bal merino, Fife, Scotland
+1 DEAT
+2 DATE 1844, Kemback, Fife, Scotland
+0 @I36@ INDI
+1 NAME Hector /Hall/
+1 BIRT
+2 DATE Dec 20 1791, Simonburn, Northumberland, England
+1 DEAT
+2 DATE Mar 20 1875, Castleton, Roxburghshire, Scotland
+0 @I37@ INDI
+1 NAME Andrew /Johnston/
+1 BIRT
+2 DATE May 15 1798, Markinch, Fife
+1 DEAT
+2 DATE Aug 29 1882, Beatson Street, Markinch, Fife
+0 @I38@ INDI
+1 NAME Agnes /More/
+1 BIRT
+2 DATE Jan 8 1804, Markinch, Fife, Scotland
+1 DEAT
+2 DATE Nov 6 1881, Markinch, Fife, Scotland
+0 @I39@ INDI
+1 NAME James /Kinlay/
+1 BIRT
+2 DATE May 16 1809, Leven, Fife, Scotland
+1 DEAT
+2 DATE Feb 23 1880, Newton Cottar Houses, Forgan, Fife, Scotland
+0 @I40@ INDI
+1 NAME John /Swinley/
+1 BIRT
+2 DATE Oct 15 1809, Ceres, Fife, Scotland
+1 DEAT
+2 DATE Feb 15 1876, Lochgelly, Fife, Scotland
+0 @I41@ INDI
+1 NAME Euphemia /Cairns/
+1 BIRT
+2 DATE May 10 1811, Wemyss, Fife, Scotland
+1 DEAT
+2 DATE Feb 3 1865, Auchterderran, Fife, Scotland
+0 @I42@ INDI
+1 NAME Betty Smith /Hall/
+1 BIRT
+2 DATE Nov 1 1812, Castleton, roxbourgh
+1 DEAT
+2 DATE Mar 14 1886, Castleton Parish, Roxburghshire, Scotland
+0 @I43@ INDI
+1 NAME James /Gallie/
+1 BIRT
+2 DATE 1813, Sicily, British Subject, Italy Deceased
+0 @I44@ INDI
+1 NAME Elizabeth /Morgan/
+1 BIRT
+2 DATE Jul 8 1814, Cameron, Fife, Scotland
+1 DEAT
+2 DATE Feb 26 1908, Newton, Wormit, Fife, Scotland
+0 @I45@ INDI
+1 NAME Robert /Inglis/
+1 BIRT
+2 DATE 1814, NewCastleton, Roxburghshire, Scotland
+1 DEAT
+2 DATE Feb 14 1892, NewCastleton, Roxburghshire, Scotland
+0 @I46@ INDI
+1 NAME Agnes /Edgar/
+1 BIRT
+2 DATE 1815, Hawick, Roxburghshire, Scotland, United Kingdom
+1 DEAT
+2 DATE Aug 7 1880
+0 @I47@ INDI
+1 NAME Jean /Marshall/
+1 BIRT
+2 DATE About 1815, County Leitrim, Ireland
+1 DEAT
+2 DATE Apr 21 1889, Kirkcaldy, Fife, Scotland
+0 @I48@ INDI
+1 NAME Thomas /Cowan/
+1 BIRT
+2 DATE About 1817, County Leitrim, Ireland
+1 DEAT
+2 DATE Jun 12 1881, Kirkcaldy, Fife, Scotland
+0 @I49@ INDI
+1 NAME Jane /Kennedy/
+1 BIRT
+2 DATE About 1825, Antrim, Ireland
+0 @I50@ INDI
+1 NAME John /Mulholland/
+1 BIRT
+2 DATE About 1825, Antrim, Ireland
+0 @I51@ INDI
+1 NAME David Johnston, coal /miner/
+1 BIRT
+2 DATE Feb 4 1828, Markinch, Fife
+1 DEAT
+2 DATE Jan 16 1901, 1 David Street, Lochgelly, Fife
+0 @I52@ INDI
+1 NAME Grace /Swinley/
+1 BIRT
+2 DATE Sep 10 1833, Denhead, St Andrews, Fife
+1 DEAT
+2 DATE Apr 1 1913, 1 David Street, Lochgelly, Fife
+0 @I53@ INDI
+1 NAME Elisabeth /Inglis/
+1 BIRT
+2 DATE 1847, NewCastleton, Roxburghshire, Scotland
+1 DEAT
+2 DATE Feb 23 1877, Castleton Parish, Roxburghshire, Scotland
+0 @I54@ INDI
+1 NAME Mary /Cowan/
+1 BIRT
+2 DATE About 1847, Ireland
+1 DEAT
+2 DATE Aug 7 1919, Lochgelly, Fife, Scotland
+0 @I55@ INDI
+1 NAME David /Kinlay/
+1 BIRT
+2 DATE 1850, Kinghorn, Fifeshire
+1 DEAT
+2 DATE Jul 5 1907, Auchterderran, Fife, Scotland
+0 @I56@ INDI
+1 NAME Robert Edgar /Gallie/
+1 BIRT
+2 DATE 1851, Hawick, Roxburghshire, Scotland, United Kingdom
+1 DEAT
+2 DATE Jul 9 1929, Dumfries, Dumfriesshire, Scotland, United Kingdom
+0 @I57@ INDI
+1 NAME John /Mulholland/
+1 BIRT
+2 DATE 1852, Ireland
+1 DEAT
+2 DATE Jun 10 1889, 35 Hill Street, Glasgow, Scotland
+0 @I58@ INDI
+1 NAME Robert /Gallie/
+1 BIRT
+2 DATE 1852
+0 @I59@ INDI
+1 NAME Isabella /McCafferty/
+1 BIRT
+2 DATE About 1854, Lanarkshire, Scotland, United Kingdom
+1 DEAT
+2 DATE Jun 10 1927, Garngadhill , Lanarkshire, Scotland
+0 @I60@ INDI
+1 NAME Euphemia /Johnston/
+1 BIRT
+2 DATE Dec 8 1855, Lochgelly, Fifeshire
+1 DEAT
+2 DATE Sep 19 1910, 1 David Street, Lochgelly, Fife
+0 @I61@ INDI
+1 NAME Agnes /Johnston/
+1 BIRT
+2 DATE Oct 22 1856, Lochgelly, Fife
+1 DEAT
+2 DATE Oct 1857, Lochgelly, Fife
+0 @I62@ INDI
+1 NAME Andrew /Mackie/
+1 BIRT
+2 DATE Mar 24 1856, Ceres, Fifeshire
+1 DEAT
+2 DATE Apr 24 1890, North St Lochgelly, Fife
+0 @I63@ INDI
+1 NAME Andrew /Johnston/
+1 BIRT
+2 DATE Jan 10 1858, Auchterderran, Fifeshire
+1 DEAT
+2 DATE May 17 1925, 64 Cemetery Road, Dunfermline, Fife
+0 @I64@ INDI
+1 NAME Grace /Johnston/
+1 BIRT
+2 DATE Jul 31 1859, Lochgelly, Fifeshire
+1 DEAT
+2 DATE Apr 25 1896, 38 Park Street, Lochgelly, Fife
+0 @I65@ INDI
+1 NAME John /Gair/
+1 BIRT
+2 DATE Apr 24 1860, Auchterderran, Fife, Scotland
+1 DEAT
+2 DATE Jan 4 1914, Lochgelly, Fife, Scotland
+0 @I66@ INDI
+1 NAME John Swinley /Johnston/
+1 BIRT
+2 DATE May 22 1861, Auchterderran, Fife, Scotland
+1 DEAT
+2 DATE Apr 13 1935, 5 Dundas Street, Lochgelly, Fife
+0 @I67@ INDI
+1 NAME Ann /Johnstone/
+1 BIRT
+2 DATE Jun 3 1863, Auchterderran, Fife, Scotland
+1 DEAT
+2 DATE Jul 29 1913, 3 David Street, Lochgelly, Fife
+0 @I68@ INDI
+1 NAME Andrew /Anderson/
+1 BIRT
+2 DATE May 21 1864, Saline, Fifeshire
+1 DEAT
+2 DATE 1936, Lochgelly, Fife, Scotland
+0 @I69@ INDI
+1 NAME David /Johnston/
+1 BIRT
+2 DATE Aug 3 1865, Muirs Buil dings, Lochgelly, Fife
+1 DEAT
+2 DATE Sep 3 1870, Lochgelly, Fife
+0 @I70@ INDI
+1 NAME Alexander /Johnston/
+1 BIRT
+2 DATE May 29 1867, Muir Houses, Lochgelly, Auchterderran, Fife
+1 DEAT
+2 DATE Feb 17 1929, Duke Street, Denny, Stirl ingshire, Scotland
+0 @I71@ INDI
+1 NAME Robert /Johnston/
+1 BIRT
+2 DATE Jul 29 1869, Lochgelly, Fifeshire, Scotland, United Kingdom
+1 DEAT
+2 DATE Feb 3 1949, 32 Kier Hardie Street, Methil, Fife
+0 @I72@ INDI
+1 NAME James /Doyle/
+1 BIRT
+2 DATE 1870 Deceased
+0 @I73@ INDI
+1 NAME Janet /Wilson/
+1 BIRT
+2 DATE 1870, Auchterderran, Fifeshire
+1 DEAT
+2 DATE Mar 15 1913, Lumphinnans, Fife, Scotland
+0 @I74@ INDI
+1 NAME William Swinley /Johnston/
+1 BIRT
+2 DATE May 31 1871, Muirs Buil dings, Lochgelly, Fife
+1 DEAT
+2 DATE Jun 15 1953, West Fife Hospital , Dunfermline, Fife, Scotland
+0 @I75@ INDI
+1 NAME John /Inglis/
+1 BIRT
+2 DATE May 26 1872, Castleton, Roxburgh, Scotland
+1 DEAT
+2 DATE Mar 30 1940, Cityof Edinburgh, Scotland
+0 @I76@ INDI
+1 NAME James /Johnston/
+1 BIRT
+2 DATE Feb 12 1873, Auchterderran, Fifeshire
+1 DEAT
+2 DATE Nov 10 1952, 8 Park Street, Lochgelly, Fife
+0 @I77@ INDI
+1 NAME Jane /Kinlay/
+1 BIRT
+2 DATE Mar 17 1873, Kirkcaldy, Fifeshire, Scotland, United Kingdom
+1 DEAT
+2 DATE Nov 19 1931, Methil, Fifeshire, Scotland, United Kingdom
+0 @I78@ INDI
+1 NAME Marion /Greig/
+1 BIRT
+2 DATE Sep 13 1874, Auchterderran, Fife, Scotland
+1 DEAT
+2 DATE Nov 18 1960, Auchterderran, Fife, Scotland
+0 @I79@ INDI
+1 NAME Andrew /Smith/
+1 BIRT
+2 DATE 1875
+1 DEAT
+2 DATE May 5 1949, Edinburgh, Scotland
+0 @I80@ INDI
+1 NAME Elizabeth Ann Crichton /Brown/
+1 BIRT
+2 DATE May 28 1875, Dunbarney, Perthshire, Scotland
+0 @I81@ INDI
+1 NAME Elizabeth /Kinlay/
+1 BIRT
+2 DATE About 1876, Ball ingry, Fifeshire
+1 DEAT
+2 DATE Feb 11 1955, Elie, Fife, Scotland
+0 @I82@ INDI
+1 NAME Thomas Swinley /Johnston/
+1 BIRT
+2 DATE Jan 2 1876, Auchterderran, Fifeshire
+1 DEAT
+2 DATE Mar 1952, Harrow, Greater London, England
+0 @I83@ INDI
+1 NAME David /Johnston/
+1 BIRT
+2 DATE Nov 13 1877, Grainger Street, Lochgelly, Auchterderran, Fife
+1 DEAT
+2 DATE Jul 31 1924, Abernethy, Perthshire, Scotland
+0 @I84@ INDI
+1 NAME Elizabeth Robertson /McKee/
+1 BIRT
+2 DATE 1877, Lochgelly, Fifeshire, Scotland, United Kingdom
+1 DEAT
+2 DATE Jan 1935, West Ward, Westmorland, England
+0 @I85@ INDI
+1 NAME Agnes /Mulholland/
+1 BIRT
+2 DATE Oct 11 1878, 35 Hill Street, Glasgow, Scotland
+1 DEAT
+2 DATE 1931, 9 Roseberry Terrace, Leven, Fife, Scotland
+0 @I86@ INDI
+1 NAME James /Kinlay/
+1 BIRT
+2 DATE About 1878, Kirkcaldy, Fifeshire
+1 DEAT
+2 DATE Oct 8 1923, Lochgelly, Fife, Scotland
+0 @I87@ INDI
+1 NAME Alison Brown /King/
+1 BIRT
+2 DATE Feb 6 1879, Inveresk, Midlothian, Scotland
+1 DEAT
+2 DATE Nov 22 1929, Dunfermline, Fife, Scotland
+0 @I88@ INDI
+1 NAME Grace /Mackie/
+1 BIRT
+2 DATE About 1880, Auchterderran, Fifeshire
+0 @I89@ INDI
+1 NAME Thomas /Kinlay/
+1 BIRT
+2 DATE About 1881, Auchterderran, Fifeshire
+1 DEAT
+2 DATE Jul 13 1900, Garel ochhead, Dunbartonshire, Scotland
+0 @I90@ INDI
+1 NAME Elizabeth Andrews /Mulholland/
+1 BIRT
+2 DATE May 5 1882, 35 Hill Street, Glasgow, Scotland
+1 DEAT
+2 DATE Dec 25 1884, 35, hill , st, Anderston, Lanarkshire, Scotland
+0 @I91@ INDI
+1 NAME Francis Laverty David Kinlay Mary /Kinlay/
+1 BIRT
+2 DATE About 1883, Auchterderran, Fifeshire
+1 DEAT
+2 DATE May 9 1962, Lochgelly, Fife, Scotland
+0 @I92@ INDI
+1 NAME John /Mulholland/
+1 BIRT
+2 DATE Nov 26 1885, 35 Hill Street, Glasgow, Scotland
+1 DEAT
+2 DATE Feb 12 1886, 35 Hill Street, Glasgow, Scotland
+0 @I93@ INDI
+1 NAME Murdoch /Gair/
+1 BIRT
+2 DATE About 1885, Auchterderran, Fife, Scotland
+1 DEAT
+2 DATE Jan 21 1916, The Persian Gulf
+0 @I94@ INDI
+1 NAME David Johnstone /Gair/
+1 BIRT
+2 DATE 1887, Ball ingry, Fife, Scotland
+1 DEAT
+2 DATE Mar 4 1954, Lochgelly, Fife, Scotland
+0 @I95@ INDI
+1 NAME Grace Swinley /Anderson/
+1 BIRT
+2 DATE Dec 11 1887, Auchterderran, Fife, Scotland
+1 DEAT
+2 DATE 1963, Lochgelly, Fife Scotland
+0 @I96@ INDI
+1 NAME Hugh /Mulholland/
+1 BIRT
+2 DATE Aug 16 1888, 35 Hill Street, Glasgow, Scotland
+1 DEAT
+2 DATE Apr 27 1953, Pollok, Renfrewshire, Scotland
+0 @I97@ INDI
+1 NAME Agnes Gilmour /Berry/
+1 BIRT
+2 DATE Jul 17 1891, Kinglassie, Fifeshire
+1 DEAT
+2 DATE Jul 16 1979, Royal Victoria Hospital , Dundee, Angus, Scotland
+0 @I98@ INDI
+1 NAME Margaret Brown /Anderson/
+1 BIRT
+2 DATE Apr 22 1891, Auchterderran, Fife, Scotland
+1 DEAT
+2 DATE Feb 13 1973, Lochgelly, Fife, Scotland
+0 @I99@ INDI
+1 NAME David /Johnston/
+1 BIRT
+2 DATE Sep 20 1892, 7 North Street, Lochgelly, Fife, Scotland
+1 DEAT
+2 DATE Oct 27 1927, Buckhaven, Fife, Scotland
+0 @I100@ INDI
+1 NAME Grace Swinley /Gair/
+1 BIRT
+2 DATE 1893, Lochgelly, Fife, Scotland
+1 DEAT
+2 DATE Feb 25 1916, 26 Abbey Road, Stirling, Stirl ingshire
+0 @I101@ INDI
+1 NAME Andrew /Rankine/
+1 BIRT
+2 DATE Sep 28 1894, Wemyss, Fife, Scotland
+1 DEAT
+2 DATE Mar 18 1980, Buckhaven, Fife, Scotland
+0 @I102@ INDI
+1 NAME David /Johnston/
+1 BIRT
+2 DATE 1894, Lochgelly, Fife
+1 DEAT
+2 DATE 1898, Beath, Fife
+0 @I103@ INDI
+1 NAME Robert /Johnston/
+1 BIRT
+2 DATE Jan 1 1894, Pitscottie, Fife, Scotland
+1 DEAT
+2 DATE Dec 24 1932, Wemyss Place, Methil, Fife
+0 @I104@ INDI
+1 NAME David /Johnston/
+1 BIRT
+2 DATE About 1895, Lochgelly, Fife
+1 DEAT
+2 DATE 1965, Lochgelly, Fife, Scotland
+0 @I105@ INDI
+1 NAME Mary Kinlay /Johnston/
+1 BIRT
+2 DATE Nov 25 1895, Auchtermuchty, Fifeshire, Scotland, United Kingdom
+1 DEAT
+2 DATE Feb 21 1969, Kirkcaldy, Fifeshire, Scotland, United Kingdom
+0 @I106@ INDI
+1 NAME Euphemia Turnbull /Clark/
+1 BIRT
+2 DATE Mar 3 1896, Ardgowan Place, Glasgow, Scotland
+1 DEAT
+2 DATE Aug 27 1941, Glasgow, Lanarkshire, Scotland
+0 @I107@ INDI
+1 NAME Isabella Penman /Johnston/
+1 BIRT
+2 DATE 1896, Lochgelly, Fife
+1 DEAT
+2 DATE Jun 20 1978, Tay St, Tayport, Fife
+0 @I108@ INDI
+1 NAME Grace Swinley /Johnston/
+1 BIRT
+2 DATE About 1897, Lochgelly, Fife, Scotland
+1 DEAT
+2 DATE 1993, Cowdenbeath, Fife, Scotland
+0 @I109@ INDI
+1 NAME Grace Swinley /Johnston/
+1 BIRT
+2 DATE Jun 22 1897, Auchtermuchty, Fifeshire, Scotland, United Kingdom
+1 DEAT
+2 DATE Nov 15 1980, Ealing, Middl esex, London, England, United Kingdom
+0 @I110@ INDI
+1 NAME James /Doyle/
+1 BIRT
+2 DATE Jun 12 1897, Glasgow, Scotland, United Kingdom
+1 DEAT
+2 DATE 1974, Glasgow, Scotland, United Kingdom
+0 @I111@ INDI
+1 NAME Andrew Todd /Dingwall/
+1 BIRT
+2 DATE Jan 10 1898, Kirkcaldy, Fife, Scotland
+1 DEAT
+2 DATE Jun 26 1967, 155 St Clair St., Kirkcaldy, Fife, Scotland
+0 @I112@ INDI
+1 NAME Peter Wilson /Johnston/
+1 BIRT
+2 DATE Dec 25 1898, Beath, Fife
+1 DEAT
+2 DATE Mar 24 1984, Dunfermline, Fife, Scotland
+0 @I113@ INDI
+1 NAME Agnes Lindsay /Inglis/
+1 BIRT
+2 DATE Aug 13 1899, Partick, Glasgow
+1 DEAT
+2 DATE 1981, Leven, Fife, Scotland
+0 @I114@ INDI
+1 NAME James Kinlay /Johnston/
+1 BIRT
+2 DATE 1899, Auchtermuchty, Fife, Scotland
+1 DEAT
+2 DATE 1984, Methil, Fife, Scotland
+0 @I115@ INDI
+1 NAME Janet T M /Johnston/
+1 BIRT
+2 DATE May 8 1899, Lochgelly, Fifeshire, Scotland, United Kingdom
+1 DEAT
+2 DATE Jun 30 1961, Harrow, Greater London, London, England, United Kingdom
+0 @I116@ INDI
+1 NAME David /Johnston/
+1 BIRT
+2 DATE Dec 26 1900, Glasgow, Lanarkshire, Strathclyde, Scotland, United Kingdom
+1 DEAT
+2 DATE Oct 22 1984, Grenfell , Saskatchewan, Canada
+0 @I117@ INDI
+1 NAME Janet /Johnston/
+1 BIRT
+2 DATE About 1900, Lochgelly, Fifeshire
+0 @I118@ INDI
+1 NAME Marion /Johnston/
+1 BIRT
+2 DATE About 1900, Lochgelly, Fife
+1 DEAT
+2 DATE 1983, Tayport, Fife
+0 @I119@ INDI
+1 NAME Isabella Mulholland /Inglis/
+1 BIRT
+2 DATE Mar 27 1901, 25 West Bothwell St, Glasgow
+0 @I120@ INDI
+1 NAME Janet Gordon /KINLAY/
+1 BIRT
+2 DATE Nov 3 1901, Lochgelly, Fife, Scotland
+1 DEAT
+2 DATE 1985, Lochgelly, Fife, Scotland
+0 @I121@ INDI
+1 NAME John /Thomson/
+1 BIRT
+2 DATE Jan 9 1901, Buckhaven, Fife, Scotland
+1 DEAT
+2 DATE 1983, Cupar, Fife, Scotland
+0 @I122@ INDI
+1 NAME William Swinley /Johnston/
+1 BIRT
+2 DATE 1901, Ball ingry, Lochgelly, Fife, Scotland
+1 DEAT
+2 DATE Mar 17 2000, Lochgelly, Fife, Scotland
+0 @I123@ INDI
+1 NAME Grace Reid Swinley /Johnston/
+1 BIRT
+2 DATE Sep 19 1902, Kinghorn, Fifeshire, Scotland, United Kingdom
+1 DEAT
+2 DATE Apr 1972, Birmingham, Warwickshire, England
+0 @I124@ INDI
+1 NAME John George Carruthers Skilling /Inglis/
+1 BIRT
+2 DATE Dec 13 1902, Ruchill Hospital , Glasgow
+1 DEAT
+2 DATE 1903, Glasgow, Scotland
+0 @I125@ INDI
+1 NAME Annie /Colquhoun/
+1 BIRT
+2 DATE Jun 17 1903, Glasgow, Scotland
+1 DEAT
+2 DATE Sep 13 1991, Stobhill Hospital , Glasgow
+0 @I126@ INDI
+1 NAME David /KINLAY/
+1 BIRT
+2 DATE 1903, Auchterderran Fife Scotland
+0 @I127@ INDI
+1 NAME Isabella McKay /Knight/
+1 BIRT
+2 DATE Apr 27 1903, Hazel Terrace, Methil, Fife, Scotland
+1 DEAT
+2 DATE Sep 28 1972, 15 Kirkland Road, Methil, Fife, Scotland
+0 @I128@ INDI
+1 NAME Andrew /Johnston/
+1 BIRT
+2 DATE 1904, Auchterderran, Fife, Scotland
+1 DEAT
+2 DATE 1960, Kirkcaldy, Fife, Scotland
+0 @I129@ INDI
+1 NAME Cecilia Brown /Robertson/
+1 BIRT
+2 DATE 1904, Buckhaven, Fife, Scotland
+1 DEAT
+2 DATE 1977, Buckhaven
+0 @I130@ INDI
+1 NAME David Wilson /Johnston/
+1 BIRT
+2 DATE 1904, Ball ingry, Lochgelly, Fife
+1 DEAT
+2 DATE Jul 2 1998, Dunfermline, Fife
+0 @I131@ INDI
+1 NAME Elizabeth Lindsay Hall /Inglis/
+1 BIRT
+2 DATE Oct 23 1904, Kil marnock, Ayr, Scotland
+1 DEAT
+2 DATE Aug 12 1929, Leven, Fife, Scotland
+0 @I132@ INDI
+1 NAME Jane Greig /Johnston/
+1 BIRT
+2 DATE 1904, Lochgelly, Fife
+1 DEAT
+2 DATE Dec 22 1987
+0 @I133@ INDI
+1 NAME Jane Kinlay /Johnston/
+1 BIRT
+2 DATE 1906, Auchterderran, Fife, Scotland
+1 DEAT
+2 DATE 1919, Buckhaven
+0 @I134@ INDI
+1 NAME Andrew Daniel /Mitchell/
+1 BIRT
+2 DATE Jul 20 1907, Bal curvie, Fife, Scotland
+1 DEAT
+2 DATE Oct 28 1976, Edinburgh, Scotland
+0 @I135@ INDI
+1 NAME David /Kinlay/
+1 BIRT
+2 DATE Apr 2 1907, Lochgelly, Fife, Scotland
+1 DEAT
+2 DATE 1978, Lochgelly, Fife, Scotland
+0 @I136@ INDI
+1 NAME Mary Ross /Inglis/
+1 BIRT
+2 DATE Mar 6 1907, 46 Stanhope St. Glasgow
+1 DEAT
+2 DATE Sep 21 1983
+0 @I137@ INDI
+1 NAME Elizabeth Kinlay /Johnston/
+1 BIRT
+2 DATE Sep 28 1908, Auchterderran, Fife, Scotland
+1 DEAT
+2 DATE Jul 7 1978, Leven, Fife, Scotland
+0 @I138@ INDI
+1 NAME Elizabeth Robertson McKee /Johnston/
+1 BIRT
+2 DATE 1908, Deptford, London, London, England, United Kingdom
+0 @I139@ INDI
+1 NAME Robert Taylor /Brunton/
+1 BIRT
+2 DATE Apr 9 1908, Scoonie, Fife, Scotland
+1 DEAT
+2 DATE Dec 5 1982, Leven, Fife, Scotland
+0 @I140@ INDI
+1 NAME John King /KINLAY/
+1 BIRT
+2 DATE 1909, Lochgelly, Fife, Scotland
+0 @I141@ INDI
+1 NAME Marion Parker /Inglis/
+1 BIRT
+2 DATE Feb 2 1909, St Rollox, Glasgow Anderston, Lanarkshire, Scotland
+1 DEAT
+2 DATE Oct 4 2000, Vancouver, British Columbia, Canada
+0 @I142@ INDI
+1 NAME Euphemia Kinlay /Johnston/
+1 BIRT
+2 DATE Oct 20 1910, Lochgelly, Fifeshire, Scotland, United Kingdom
+1 DEAT
+2 DATE Aug 4 2017, Gl enrothes, Scotland, United Kingdom
+0 @I143@ INDI
+1 NAME Margaret Milne /Inglis/
+1 BIRT
+2 DATE Dec 15 1911, 21 St Monance St, Glasgow
+0 @I144@ INDI
+1 NAME James /KINLAY/
+1 BIRT
+2 DATE 1912, Lochgelly, Fife, Scotland
+1 DEAT
+2 DATE 1913, Lochgelly, Fife, Scotland
+0 @I145@ INDI
+1 NAME John Given /McDonald/
+1 BIRT
+2 DATE Sep 22 1912, Windygates, Fife, Scotland
+1 DEAT
+2 DATE 1987, Leven, Fife, Scotland
+0 @I146@ INDI
+1 NAME Agnes Munro Burnsor /CARR/
+1 BIRT
+2 DATE Nov 6 1913
+1 DEAT
+2 DATE Oct 11 1996, Queen Margaret Hospital , Dunfermline, Fife
+0 @I147@ INDI
+1 NAME Hughena Mulholland /Inglis/
+1 BIRT
+2 DATE Dec 4 1913, 3 Back Street Methil Fife
+1 DEAT
+2 DATE Jan 5 1914, Buckhaven, Fife, Scotland
+0 @I148@ INDI
+1 NAME Robert /Johnston/
+1 BIRT
+2 DATE Sep 2 1913, Collier Road, Kinglassie, Fife, Scotland
+1 DEAT
+2 DATE Feb 16 1999, 9 Cabbagehall Place, Leslie, Fife
+0 @I149@ INDI
+1 NAME Thomas Kinlay /Johnston/
+1 BIRT
+2 DATE Jun 27 1913, Kinglassie, Fife, Scotland
+1 DEAT
+2 DATE Jun 11 1997, Vancouver, British Columbia, Canada
+0 @I150@ INDI
+1 NAME Elizabeth /Johnston/
+1 BIRT
+2 DATE 1914, Kinglassie, Fife, Scotland Deceased
+0 @I151@ INDI
+1 NAME Alexander /Clark/
+1 BIRT
+2 DATE May 24 1915, Glasgow
+0 @I152@ INDI
+1 NAME Peter Wilson /Kinlay/
+1 BIRT
+2 DATE Jun 19 1915, Dunfermline, Fife, Scotland
+1 DEAT
+2 DATE 1989, Kirkcaldy, Fife, Scotland
+0 @I153@ INDI
+1 NAME James McInlay Isabella McCafferty Jessie Clark /Mulholland/
+1 BIRT
+2 DATE Dec 22 1916, Glasgow
+1 DEAT
+2 DATE 1994, Martha St, Glasgow, Lanarkshire, Scotland
+0 @I154@ INDI
+1 NAME William Clark /Myles/
+1 BIRT
+2 DATE Jan 30 1918, Buckhaven, Fife, Scotland
+1 DEAT
+2 DATE Dec 7 2007, Kirkcaldy, Fife, Scotland
+0 @I155@ INDI
+1 NAME Agnes Gilmour /Johnston/
+1 BIRT
+2 DATE Apr 8 1919, Buckhaven, Fife, Scotland
+1 DEAT
+2 DATE Apr 13 2008, Methil, Fife, Scotland
+0 @I156@ INDI
+1 NAME George Aitken Brown /Glen/
+1 BIRT
+2 DATE Dec 5 1919, St George, Edinburgh, Midlothian, Scotland
+1 DEAT
+2 DATE Oct 26 1991, Haymarket, Edinburgh, Midlothian, Scotland
+0 @I157@ INDI
+1 NAME Mulholland //
+1 BIRT
+2 DATE Jun 17 1919, 35 Hill Street, Glasgow, Scotland
+1 DEAT
+2 DATE 2012, Martha St, Glasgow, Lanark, Scotland
+0 @I158@ INDI
+1 NAME Andrew Thomson /Callow/
+1 BIRT
+2 DATE 1920, St Rollox, Glasgow Anderston, Lanarkshire, Scotland
+1 DEAT
+2 DATE 1990, Martha St, Glasgow, Lanark, Scotland
+0 @I159@ INDI
+1 NAME Arthur Harris Jane Kinlay Johnston George /Harris/
+1 BIRT
+2 DATE Dec 16 1921, Fife, Scotland
+1 DEAT
+2 DATE Australia
+0 @I160@ INDI
+1 NAME William George /Hill/
+1 BIRT
+2 DATE Mar 4 1921, Kensington, Greater London
+1 DEAT
+2 DATE Jan 25 2018, Harrow, Middl esex, England
+0 @I161@ INDI
+1 NAME Jane Kinlay Johnston "Jean" /Rankine/
+1 BIRT
+2 DATE May 8 1922, Buckhaven, Fife, Scotland
+1 DEAT
+2 DATE Dec 15 2011, London, England
+0 @I162@ INDI
+1 NAME Joseph Doherty Christina Warne Agnes Inglis /Mulholland/
+1 BIRT
+2 DATE Oct 28 1922, 35 Hill Street, Glasgow, Scotland
+1 DEAT
+2 DATE Mar 10 2009, Glasgow, Lanarkshire, Scotland
+0 @I163@ INDI
+1 NAME Peter /Horne/
+1 BIRT
+2 DATE 1923, Buckhaven, Fife, Scotland
+1 DEAT
+2 DATE 1997, Buckhaven, Fife, Scotland
+0 @I164@ INDI
+1 NAME Richard Berry /Johnston/
+1 BIRT
+2 DATE Jun 3 1923, Buckhaven, Fife, Scotland
+1 DEAT
+2 DATE 1995, Gl enrothes, Fife, Scotland
+0 @I165@ INDI
+1 NAME Agnes /Doyle/
+1 BIRT
+2 DATE Apr 6 1924, Glasgow, Scotland, United Kingdom
+1 DEAT
+2 DATE Jan 20 1986, Wenatchee, Chelan, Washington, United States
+0 @I166@ INDI
+1 NAME Jane Kinlay Johnston /Dingwall/
+1 BIRT
+2 DATE Nov 10 1924, Buckhaven, Fife, Scotland
+1 DEAT
+2 DATE Oct 27 1988, Haymarket, Edinburgh, Midlothian, Scotland
+0 @I167@ INDI
+1 NAME Annie "NAN" Gordan /Murray/
+1 BIRT
+2 DATE Aug 9 1925, Kirkland Farm, Fife
+1 DEAT
+2 DATE Apr 1 2015, Gl enrothes, Fife, Scotland
+0 @I168@ INDI
+1 NAME David /Johnston/
+1 BIRT
+2 DATE 1925, Buckhaven, Fife, Scotland
+1 DEAT
+2 DATE 1997, Gl enrothes, Fife, Scotland
+0 @I169@ INDI
+1 NAME Jane Pattison Bogie /Hepburn/
+1 BIRT
+2 DATE Apr 1 1925, Leslie, Fife, Scotland
+1 DEAT
+2 DATE May 28 2013, Gl enrothes, Fife, Scotland
+0 @I170@ INDI
+1 NAME Mulholland //
+1 BIRT
+2 DATE 1925, Anderson, Glasgow
+1 DEAT
+2 DATE 1990, Martha St, Glasgow, Lanark, Scotland
+0 @I171@ INDI
+1 NAME Patrick Arthur /Hanlon/
+1 BIRT
+2 DATE 1925, Glasgow, Scotland
+1 DEAT
+2 DATE 1954, Townhead, Glasgow, Scotland
+0 @I172@ INDI
+1 NAME Agnes Inglis /Thomson/
+1 BIRT
+2 DATE 1926, Leven, Fife, Scotland
+1 DEAT
+2 DATE 1992, Buckhaven, Fife, Scotland
+0 @I173@ INDI
+1 NAME James /Doyle/
+1 BIRT
+2 DATE Jul 6 1926, Glasgow, Scotland, United Kingdom
+1 DEAT
+2 DATE Nov 5 2005, Bristol , England, United Kingdom
+0 @I174@ INDI
+1 NAME Bernard M Smith Robert Johnston, Rev. Jean Muriel /Johnston/
+1 BIRT
+2 DATE 1927, Buckhaven, Fife, Scotland
+1 DEAT
+2 DATE Nov 2004, east Staffs, Staffordshire, England
+0 @I175@ INDI
+1 NAME Helen Deas /Thomson/
+1 BIRT
+2 DATE 1927, Leven, Fife, Scotland
+1 DEAT
+2 DATE 1929, Leven, Fife, Scotland
+0 @I176@ INDI
+1 NAME Robert (Ronnie) /Johnston/
+1 BIRT
+2 DATE Mar 5 1928, 91 Barrie Street, Methil, Fife, Scotland
+1 DEAT
+2 DATE Feb 2 2015, Cl ackmannanshire, Community Heal thcare Centre, Hall park Road, Sauchie, FK10 3JQ
+0 @I177@ INDI
+1 NAME Catherine Dolan /Swinley/
+1 BIRT
+2 DATE Jun 23 1929, Fife, Scotland
+1 DEAT
+2 DATE Jul 2011, Dunfermline, Fife, Scotland
+0 @I178@ INDI
+1 NAME Edward McIntyre /Mulholland/
+1 BIRT
+2 DATE Jan 2 1931, Anderston, Glasgow, Lanarkshire, Scotland
+1 DEAT
+2 DATE May 21 1979, Ayrshire Central Hospital , Irvine, Ayrshire, Scotland
+0 @I179@ INDI
+1 NAME Matilda C /Sama/
+1 BIRT
+2 DATE Dec 22 1931, Harrison, Hudson, New Jersey, USA
+1 DEAT
+2 DATE Mar 29 2015, New Jersey, USA
+0 @I180@ INDI
+1 NAME Andrew /Johnston/
+1 BIRT
+2 DATE 1932, Buckhaven, Fife, Scotland
+0 @I181@ INDI
+1 NAME Ian Albert /Jackson/
+1 BIRT
+2 DATE Nov 26 1932, Vancouver, BC
+1 DEAT
+2 DATE Sep 19 2019, Tsawwassen, BC
+0 @I182@ INDI
+1 NAME John Inglis /Doyle/
+1 BIRT
+2 DATE May 14 1932, Glasgow, Scotland, United Kingdom
+1 DEAT
+2 DATE Dec 20 2015, New Jersey, United States
+0 @I183@ INDI
+1 NAME David Turnbull /Johnston/
+1 BIRT
+2 DATE Aug 14 1933, Buckhaven, Fife, Scotland
+1 DEAT
+2 DATE May 4 2004, Dunfermline, Fife, Scotland
+0 @I184@ INDI
+1 NAME Margaret Hutton /Doyle/
+1 BIRT
+2 DATE Nov 7 1933, Methilhill Wemyss
+1 DEAT
+2 DATE Nov 19 2011, Methil, Fife, Scotland
+0 @I185@ INDI
+1 NAME William Robertson /Johnston/
+1 BIRT
+2 DATE 1934, Buckhaven, Fife, Scotland
+1 DEAT
+2 DATE 2005, Buckhaven, Fife, Scotland
+0 @I186@ INDI
+1 NAME Agnes Mulholland /McDonald/
+1 BIRT
+2 DATE 1935, Kirkcaldy, Fife, Scotland
+0 @I187@ INDI
+1 NAME Janette Kellock /Nicoll/
+1 BIRT
+2 DATE Feb 11 1935, Kirkcaldy, Fife, Scotland
+1 DEAT
+2 DATE May 10 2019, Arbroath, Angus
+0 @I188@ INDI
+1 NAME Agnes B. (Ena) /Harris/
+1 BIRT
+2 DATE May 22 1938, Fife, Scotland
+1 DEAT
+2 DATE Oct 5 2012, Bunbury
+0 @I189@ INDI
+1 NAME Agnes Mulholland /Johnston/
+1 BIRT
+2 DATE Oct 21 1938, Buckhaven, Fife, Scotland
+0 @I190@ INDI
+1 NAME Margaret Kilpatrick /Watson/
+1 BIRT
+2 DATE Jul 20 1938, Buckhaven, Fife, Scotland
+0 @I191@ INDI
+1 NAME Andrew /Mitchell/
+1 BIRT
+2 DATE Aug 17 1939, Kirkcaldy, Fife, Scotland, United Kingdom
+1 DEAT
+2 DATE 2015, Penicuik, Midlothian, Scotland, United Kingdom
+0 @I192@ INDI
+1 NAME Helen Hunter /Harris/
+1 BIRT
+2 DATE Jun 23 1943, Fife, Scotland
+1 DEAT
+2 DATE Australia
+0 @I193@ INDI
+1 NAME Christine Margret Baxter /Anderson/
+1 BIRT
+2 DATE Mar 12 1945, Armadale, West Lothian, Scotland
+0 @I194@ INDI
+1 NAME James /Guidi/
+1 BIRT
+2 DATE 1945, Buckhaven, Fife, Scotland
+1 DEAT
+2 DATE Jun 25 2005, Buckhaven, Fife, Scotland
+0 @I195@ INDI
+1 NAME John /Myles/
+1 BIRT
+2 DATE Dec 23 1945, Methil, Fife, Scotland
+0 @I196@ INDI
+1 NAME Robert Gavin Stewart Garry Peter Horne Carol Agnes Inglis /Horne/
+1 BIRT
+2 DATE 1945, St Andrews, Fife, Scotland
+1 DEAT
+2 DATE 2005, Aberfeldy, Perthshire, Scotland
+0 @I197@ INDI
+1 NAME Christina Bisset /Brown/
+1 BIRT
+2 DATE Jan 6 1946, Kirkcaldy, Fife, Scotland
+1 DEAT
+2 DATE Sep 15 2023, Watford, Hertfordshire, England
+0 @I198@ INDI
+1 NAME Johnson Robert /Mitchell/
+1 BIRT
+2 DATE Jan 18 1946, Kirkcaldy, Fife, Scotland
+0 @I199@ INDI
+1 NAME Veronica /Johnston/
+1 BIRT
+2 DATE 1946, Buckhaven, Fife, Scotland
+1 DEAT
+2 DATE 1998, Buckhaven, Fife, Scotland
+0 @I200@ INDI
+1 NAME Euphemia Mulholland /Hanlon/
+1 BIRT
+2 DATE 1947, Glasgow, Scotland
+0 @I201@ INDI
+1 NAME Marilyn Wilson /McDonald/
+1 BIRT
+2 DATE Oct 24 1947, Kirkcaldy, Fife, Scotland, United Kingdom
+0 @I202@ INDI
+1 NAME Douglas W /Hill/
+1 BIRT
+2 DATE Jul 1948, Hammersmith, Greater London, England
+0 @I203@ INDI
+1 NAME James Kenneth /Johnston/
+1 BIRT
+2 DATE Jul 21 1950, Craigtoun Maternity Hospital , St Andrews, Fife, Scotland
+1 DEAT
+2 DATE Oct 3 2022, Dunfermline / Inverkeithing, Fife, Scotland
+0 @I204@ INDI
+1 NAME Janet Clair /Sharman/
+1 BIRT
+2 DATE Apr 7 1950, Dagenham, Essex, England
+0 @I205@ INDI
+1 NAME Adele S L T Walker Jeanette Elaine Hill Peter Albert /Swaffield/
+1 BIRT
+2 DATE Apr 1951, Isl ington, Greater London
+0 @I206@ INDI
+1 NAME Eric Patrick /Westwood/
+1 BIRT
+2 DATE 1954, St Andrews, Fife, Scotland
+0 @I207@ INDI
+1 NAME Erik Iain /Johnston/
+1 BIRT
+2 DATE 1955, St Andrews, Fife
+0 @I208@ INDI
+1 NAME Gaynia Kay /Johnston/
+1 BIRT
+2 DATE 1956, St Andrews, Fife
+1 DEAT
+2 DATE 2021, Arbroath, Angus, Scotland
+0 @I209@ INDI
+1 NAME William Doyle /Johnston/
+1 BIRT
+2 DATE Dec 21 1956, Kirkcaldy, Fife, Scotland
+1 DEAT
+2 DATE Dec 23 1956, Kirkcaldy, Fife, Scotland
+0 @I210@ INDI
+1 NAME Alexander Iain /Johnston/
+1 BIRT
+2 DATE Mar 2 1958, St Andrews, Fife, Scotland
+1 DEAT
+2 DATE 2005, Gl enrothes, Fife, Scotland
+0 @I211@ INDI
+1 NAME Shona /Johnston/
+1 BIRT
+2 DATE Mar 2 1958, St Andrews, Fife, Scotland
+1 DEAT
+2 DATE Jul 2 2020, Fal kirk, Stirl ingshire, Scotland
+0 @I212@ INDI
+1 NAME Andrew /Johnston/
+1 BIRT
+2 DATE 1960, St Andrews, Fife, Scotland
+0 @I213@ INDI
+1 NAME Hazel Ann /Walker/
+1 BIRT
+2 DATE 1960, St George, Edinburgh, Midlothian, Scotland
+0 @I214@ INDI
+1 NAME Thomas Fraser /Jackson/
+1 BIRT
+2 DATE May 22 1961, Montreal , Quebec
+1 DEAT
+2 DATE Jun 4 1998
+0 @I215@ INDI
+1 NAME Louise Elizabeth /Thorburn/
+1 BIRT
+2 DATE May 10 1962, Edinburgh. 41, Cannongate (Was this Lochends Close ?)
+0 @I216@ INDI
+1 NAME Michael William /Glen/
+1 BIRT
+2 DATE May 8 1963, Edinburgh - Simpsons
+0 @I217@ INDI
+1 NAME Paul /Johnston/
+1 BIRT
+2 DATE 1963, Buckhaven, Fife, Scotland
+0 @I218@ INDI
+1 NAME Andrew Malcolm /Mitchell/
+1 BIRT
+2 DATE Nov 4 1966, St Andrews, Fife, Scotland
+0 @I219@ INDI
+1 NAME Gregory Clive /Turnbull/
+1 BIRT
+2 DATE Sep 1967, South Shields, Durham, England
+0 @I220@ INDI
+1 NAME Yvonne Linda /Thornton/
+1 BIRT
+2 DATE 1967, Edinburgh
+0 @I221@ INDI
+1 NAME Karen Mary /Mitchell/
+1 BIRT
+2 DATE Jul 31 1970, Penicuik, Midlothian, Scotland
+0 @I222@ INDI
+1 NAME Stewart James /Myles/
+1 BIRT
+2 DATE Sep 8 1970, St Andrews, Fife, Scotland
+0 @I223@ INDI
+1 NAME Fiona Helen /Mitchell/
+1 BIRT
+2 DATE Aug 1 1972, Kirkcaldy, Fife, Scotland
+0 @I224@ INDI
+1 NAME David William /Myles/
+1 BIRT
+2 DATE Mar 7 1973, Buckhaven, Fife, Scotland
+0 @I225@ INDI
+1 NAME Fraser James /Walker/
+1 BIRT
+2 DATE 1974, Buckhaven, Fife, Scotland
+0 @I226@ INDI
+1 NAME Leona Rachille /Guidi/
+1 BIRT
+2 DATE 1974, Buckhaven, Fife, Scotland
+0 @I227@ INDI
+1 NAME Mark Donald /Rodger/
+1 BIRT
+2 DATE 1975, Gorebridge, Midlothian, Scotland
+0 @I228@ INDI
+1 NAME David Johnston /Mitchell/
+1 BIRT
+2 DATE Mar 25 1977, Hemel Hempstead, Hertfordshire, England
+0 @I229@ INDI
+1 NAME Craig /Murray/
+1 BIRT
+2 DATE Jun 8 1979
+0 @I230@ INDI
+1 NAME Sonia Margaret /Guidi/
+1 BIRT
+2 DATE 1979, Buckhaven, Fife, Scotland
+0 @I231@ INDI
+1 NAME Gavin Patrick /Westwood/
+1 BIRT
+2 DATE 1980, Leven, Fife, Scotland
+0 @I232@ INDI
+1 NAME Michael /Giblin/
+1 BIRT
+2 DATE Dec 8 1981, Edinburgh
+0 @I233@ INDI
+1 NAME Robert John /Swaffield/
+1 BIRT
+2 DATE Jan 1982, Brent, Greater London
+0 @I234@ INDI
+1 NAME Lynne Sharpe Iain Gordon /Westwood/
+1 BIRT
+2 DATE 1983, Montrose, Angus, Scotland
+0 @I235@ INDI
+1 NAME Amy Margaret /Cobb/
+1 BIRT
+2 DATE 1984, Montrose, Angus, Scotland
+0 @I236@ INDI
+1 NAME Matthew James /Swaffield/
+1 BIRT
+2 DATE Sep 1986, Brent, Greater London
+0 @I237@ INDI
+1 NAME Peter /Horne/
+1 BIRT
+2 DATE May 10 1989, Aberdeen, Scotland
+0 @I238@ INDI
+1 NAME Emma Elizabeth /Byers/
+1 BIRT
+2 DATE 1994, Glasgow, Scotland
+0 @I239@ INDI
+1 NAME George /Horne/
+1 BIRT
+2 DATE Dec 5 1995, Cupar, Fife, Scotland
+0 @I240@ INDI
+1 NAME Kyle James /Walker/
+1 BIRT
+2 DATE 1997, Buckhaven, Fife, Scotland
+0 @I241@ INDI
+1 NAME Ross David /Mitchell/
+1 BIRT
+2 DATE 1997, Penicuik, Midlothian, Scotland
+0 @I242@ INDI
+1 NAME Fraser John /Mitchell/
+1 BIRT
+2 DATE 1999, Penicuik, Midlothian, Scotland
+0 @I243@ INDI
+1 NAME Alexander Marshall Agnes /Saunders/
+0 @I244@ INDI
+1 NAME Arran Ritchie /Westwood/
+1 BIRT
+2 DATE 2013, Montrose, Angus, Scotland
+0 @I245@ INDI
+1 NAME Benjamin /Turnbull/
+1 BIRT
+2 DATE Nov 2006, St Al bans, Herts
+0 @I246@ INDI
+1 NAME Clement /Moscrope/
+1 BIRT
+2 DATE 1690, Stapl eton, Cumberland, England
+1 DEAT
+2 DATE Cumberland England
+0 @I247@ INDI
+1 NAME Close familyof Marion Parker /Inglis/
+0 @I248@ INDI
+1 NAME Close familyof Thomas Kinlay /Johnston/
+0 @I249@ INDI
+1 NAME David Jackson Yvette /Jackson/
+0 @I250@ INDI
+1 NAME Edward /Hall/
+1 BIRT
+2 DATE 1699, El sdon, Northumberland, England
+1 DEAT
+2 DATE 1746
+0 @I251@ INDI
+1 NAME Elizabeth /Crawford/
+1 BIRT
+2 DATE Feb 9 1664, Ayr, Ayrshire
+1 DEAT
+2 DATE Aug 1709, Ayr, Ayrshire
+0 @I252@ INDI
+1 NAME Emma Rebecca /Turnbull/
+1 BIRT
+2 DATE Nov 2004, St Al bans, Herts
+0 @I253@ INDI
+1 NAME Gabriell /Hall/
+1 BIRT
+2 DATE 1643, El sdon, Northumberland, England
+1 DEAT
+2 DATE 1733
+0 @I254@ INDI
+1 NAME Harrison /Turnbull/
+1 BIRT
+2 DATE Nov 2010
+0 @I255@ INDI
+1 NAME Helen /Wilson/
+0 @I256@ INDI
+1 NAME Hugh /Ballantyne/
+1 BIRT
+2 DATE Jul 24 1697, Ayr, Ayrshire, Scotland
+1 DEAT
+2 DATE Scotland
+0 @I257@ INDI
+1 NAME Innes Guidi /Murray/
+1 BIRT
+2 DATE Feb 1 2009, Leven, Fife, Scotland
+0 @I258@ INDI
+1 NAME James /Ingles/
+1 BIRT
+2 DATE 1680, Ewes, Dumfriesshire, Scotland
+0 @I259@ INDI
+1 NAME Jane /Curwen/
+1 BIRT
+2 DATE About 1690, Beckermet, Cumberland, England
+0 @I260@ INDI
+1 NAME Janet /Armstrong/
+0 @I261@ INDI
+1 NAME Jannet /Nicoll/
+1 BIRT
+2 DATE About 1686, Castleton, Roxburghshire, Scotland
+1 DEAT
+2 DATE Jan 29 1760, Scotland
+0 @I262@ INDI
+1 NAME Jean /Miller/
+1 BIRT
+2 DATE 1680, East Kil bride, Lanarkshire, Scotland
+1 DEAT
+2 DATE About 1715, East Kil bride, Lanarkshire, Scotland
+0 @I263@ INDI
+1 NAME John Ballantine, Lairdof Craig /Moer/
+1 BIRT
+2 DATE About 1661, Ayr, Ayrshire, Scotland
+1 DEAT
+2 DATE Ayr, Ayrshire, Scotland
+0 @I264@ INDI
+1 NAME John Lindsay Margaret /Black/
+0 @I265@ INDI
+1 NAME John McCafferty Agnes /Lindsay/
+0 @I266@ INDI
+1 NAME Lewis Eric /Westwood/
+1 BIRT
+2 DATE 2016, Montrose, Angus, Scotland
+0 @I267@ INDI
+1 NAME Martha /Taylor/
+1 BIRT
+2 DATE 1647, El sdon, Northumberland, England
+1 DEAT
+2 DATE 1730, Otterburn Tower, Northumberland, England
+0 @I268@ INDI
+1 NAME Mary Jane /Toon/
+1 BIRT
+2 DATE Northumberland, England
+1 DEAT
+2 DATE Nov 18 1747
+0 @I269@ INDI
+1 NAME Michael JOHNSTON Mary /Inglis/
+0 @I270@ INDI
+1 NAME Michael JOHNSTON Mary Inglis Thomas Young Catherine /Johnston/
+0 @I271@ INDI
+1 NAME Michael /Mulholland/
+0 @I272@ INDI
+1 NAME Nathan Andrew /Rodger/
+1 BIRT
+2 DATE 2007, Midlothian
+0 @I273@ INDI
+1 NAME Richard Cowan Letitia /Scales/
+0 @I274@ INDI
+1 NAME Richard Cowan Letitia Scales Alexander Marshall Agnes /Saunders/
+0 @I275@ INDI
+1 NAME Ronnie Andrew /Murray/
+1 BIRT
+2 DATE Dec 20 2014, Methil, Fife, Scotland
+0 @I276@ INDI
+1 NAME Roy McGregor /Campbell/
+0 @I277@ INDI
+1 NAME Sir John Crawfordof Monach /Crawford,/
+1 BIRT
+2 DATE Mar 2 1634, Ayr, Ayrshire
+1 DEAT
+2 DATE 1714, Kil birnie, Ayrshire, Scotland
+0 @I278@ INDI
+1 NAME Thomas Young Catherine /Johnston/
+0 @I279@ INDI
+1 NAME William /Riddell/
+1 BIRT
+2 DATE About 1682, East Kil bride, Lanarkshire, Scotland
+1 DEAT
+2 DATE Scotland
+0 @I280@ INDI
+1 NAME Yvonne Mary /Glen/
+0 TRLR

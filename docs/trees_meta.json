@@ -1,0 +1,72 @@
+[
+  {
+    "id": "000059",
+    "name": "Close Family of Marion Parker Inglis",
+    "subtitle": "Marion Parker Inglis (b. Feb 2, 1909, Glasgow)",
+    "description": "Full close family branch spanning 6+ generations with 98+ family members across Scotland & North America.",
+    "width_in": 62.7,
+    "height_in": 46.0,
+    "svg_width_pt": 4513.0,
+    "svg_height_pt": 3312.0,
+    "person_count": 98,
+    "tile_pages": 49,
+    "tile_pdf": "tiles/000059_printable_tiles.pdf",
+    "svg_file": "svg/000059.svg"
+  },
+  {
+    "id": "000061",
+    "name": "Close Family of Thomas Kinlay Johnston",
+    "subtitle": "Thomas Kinlay Johnston (b. Jun 27, 1913, Fife)",
+    "description": "Comprehensive panoramic tree spanning 8+ generations with 200+ family members.",
+    "width_in": 151.2,
+    "height_in": 37.6,
+    "svg_width_pt": 10888.0,
+    "svg_height_pt": 2708.0,
+    "person_count": 204,
+    "tile_pages": 96,
+    "tile_pdf": "tiles/000061_printable_tiles.pdf",
+    "svg_file": "svg/000061.svg"
+  },
+  {
+    "id": "000067",
+    "name": "Ancestors of Marion Parker Inglis",
+    "subtitle": "Direct Ancestors of Marion Parker Inglis",
+    "description": "Direct ancestral lineage tracing backward through Inglis, Gallie, and Crawford lines.",
+    "width_in": 54.4,
+    "height_in": 39.3,
+    "svg_width_pt": 3919.0,
+    "svg_height_pt": 2831.0,
+    "person_count": 52,
+    "tile_pages": 36,
+    "tile_pdf": "tiles/000067_printable_tiles.pdf",
+    "svg_file": "svg/000067.svg"
+  },
+  {
+    "id": "000069",
+    "name": "Ancestors of John Inglis",
+    "subtitle": "John Inglis (b. May 26, 1872, Roxburgh)",
+    "description": "Ancestral chart of John Inglis tracing paternal and maternal Scottish origins.",
+    "width_in": 43.6,
+    "height_in": 35.8,
+    "svg_width_pt": 3137.0,
+    "svg_height_pt": 2580.0,
+    "person_count": 41,
+    "tile_pages": 30,
+    "tile_pdf": "tiles/000069_printable_tiles.pdf",
+    "svg_file": "svg/000069.svg"
+  },
+  {
+    "id": "000071",
+    "name": "Ancestors of Thomas Kinlay Johnston",
+    "subtitle": "Thomas Kinlay Johnston (b. Jun 27, 1913, Fife)",
+    "description": "Ancestral chart for Thomas Kinlay Johnston tracing the Johnston, Kinlay, and Mackie families.",
+    "width_in": 40.9,
+    "height_in": 27.7,
+    "svg_width_pt": 2943.0,
+    "svg_height_pt": 1995.0,
+    "person_count": 40,
+    "tile_pages": 25,
+    "tile_pdf": "tiles/000071_printable_tiles.pdf",
+    "svg_file": "svg/000071.svg"
+  }
+]
