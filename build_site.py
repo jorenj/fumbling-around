@@ -84,12 +84,18 @@ def clean_text(s: str) -> str:
     s = re.sub(r'\s+', ' ', s).strip()
     return s
 
-def make_background_white(doc):
-    """Replace parchment background fill with pure white (1 1 1 rg) to save ink."""
+def make_background_white_and_remove_frame(doc):
+    """
+    1. Replace parchment background fill with pure white (1 1 1 rg) to save ink.
+    2. Eliminate outer decorative poster frame border (/form1 Do) for clean borderless prints.
+    """
     page = doc[0]
     for xref in page.get_contents():
         stream = doc.xref_stream(xref).decode('latin1')
+        # Pure white background
         stream_mod = re.sub(r'\.949\s+\.949\s+\.937\s+rg', '1 1 1 rg', stream)
+        # Eliminate outer frame border
+        stream_mod = re.sub(r'/[Ff]orm\d+\s+Do', '          ', stream_mod)
         doc.update_stream(xref, stream_mod.encode('latin1'))
 
 def export_svg(doc, tree_id, out_dir):
@@ -444,8 +450,8 @@ def main():
         
         doc = fitz.open(pdf_path)
         
-        # 1. Convert background to pure white
-        make_background_white(doc)
+        # 1. Convert background to pure white and eliminate outer frame border
+        make_background_white_and_remove_frame(doc)
 
         page = doc[0]
         pw, ph = page.rect.width, page.rect.height
