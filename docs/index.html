@@ -358,27 +358,56 @@
       line-height: 1.4;
     }
 
-    .btn-download {
+    .btn-actions-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .btn-preview {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
       width: 100%;
-      padding: 10px 14px;
+      padding: 11px 14px;
       border-radius: var(--radius-md);
       background: var(--accent-gold);
       color: #12151b;
       font-weight: 600;
-      font-size: 0.82rem;
+      font-size: 0.84rem;
       text-decoration: none;
       transition: all 0.2s ease;
       box-shadow: 0 4px 10px rgba(212, 163, 115, 0.25);
     }
 
-    .btn-download:hover {
+    .btn-preview:hover {
       background: var(--accent-gold-hover);
       box-shadow: 0 6px 14px rgba(212, 163, 115, 0.4);
       transform: translateY(-1px);
+    }
+
+    .btn-download-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      padding: 8px 12px;
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      font-weight: 500;
+      font-size: 0.78rem;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+
+    .btn-download-secondary:hover {
+      background: rgba(255, 255, 255, 0.14);
+      color: #fff;
     }
 
     .print-meta-grid {
@@ -802,9 +831,14 @@
             <div>Margins: <strong>0.25" (Shingle Overlap)</strong></div>
             <div>Assembly Guide: <strong>Page 1 Master Map</strong></div>
           </div>
-          <a id="printDownloadBtn" href="tiles/000059_printable_tiles.pdf" target="_blank" download class="btn-download">
-            📥 Download Printable Tiles PDF
-          </a>
+          <div class="btn-actions-group">
+            <a id="printPreviewBtn" href="tiles/000059_printable_tiles.pdf" target="_blank" rel="noopener" class="btn-preview">
+              👁 Preview & Print Tiled PDF
+            </a>
+            <a id="printDownloadBtn" href="tiles/000059_printable_tiles.pdf" download class="btn-download-secondary">
+              📥 Direct Download to Disk
+            </a>
+          </div>
         </div>
       </div>
     </div>
@@ -890,6 +924,7 @@
     const printTreeTitle = document.getElementById('printTreeTitle');
     const printSheetCount = document.getElementById('printSheetCount');
     const printGridSize = document.getElementById('printGridSize');
+    const printPreviewBtn = document.getElementById('printPreviewBtn');
     const printDownloadBtn = document.getElementById('printDownloadBtn');
     const sidebar = document.getElementById('sidebar');
     const mobileMenuBtn = document.getElementById('mobileMenuBtn');
@@ -963,6 +998,7 @@
       printTreeTitle.textContent = tree.name;
       printSheetCount.textContent = `${tree.tile_pages} Sheets (+1 Guide Sheet)`;
       printGridSize.textContent = `${tree.grid_cols} × ${tree.grid_rows} Grid (${tree.skipped_empty} empty omitted)`;
+      printPreviewBtn.href = tree.tile_pdf;
       printDownloadBtn.href = tree.tile_pdf;
 
       // Close person modal & clear highlights
