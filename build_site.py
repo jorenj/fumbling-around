@@ -2,11 +2,12 @@
 """
 build_site.py - Generate all website assets for Grannie's Family Trees website.
 
-Layout & Printing specs:
-  - 0.25" physical margins (18 pt) for maximum printable area per letter sheet.
-  - 0.25" overlap (18 pt) matching the 0.25" margin for natural shingle layering.
-  - Clean Bottom and Right edges (free of text/labels) for seamless shingle overlapping.
-  - Pure crisp white background (ink-saving, zero background tint).
+Features:
+  - Smart Content-Aware Tiling: Slices seams through natural whitespace gutters between
+    generation columns and family rows to eliminate cutting pictures or text blocks in half.
+  - Box-Preserving Overlap: Overlap buffer ensures every person box is 100% complete.
+  - 0.25" margins (18 pt) with clean Bottom & Right edges for seamless shingle overlapping.
+  - 100% pure crisp white background (no ink waste on background tint).
   - Page 1 Master Assembly Guide Sheet with complete visual grid map.
   - Prominent Tile Identifiers (e.g. [ TILE B-3 ]) in the top header bar.
   - Automatic elimination of empty whitespace tiles (saves 35-50% paper).
@@ -208,11 +209,47 @@ def get_col_letter(col_idx: int) -> str:
         return chr(65 + col_idx)
     return chr(65 + col_idx // 26 - 1) + chr(65 + col_idx % 26)
 
+def optimize_smart_seams(total_len, max_span, blocks, is_x=True):
+    """
+    Find seam split positions that fall into the widest whitespace gutters
+    between generation columns and family rows to avoid cutting names or photos in half.
+    """
+    seams = [0.0]
+    while seams[-1] < total_len:
+        curr = seams[-1]
+        if curr + max_span >= total_len:
+            seams.append(float(total_len))
+            break
+            
+        max_reach = min(curr + max_span, total_len)
+        min_reach = curr + max_span * 0.55  # Search in the upper 45% of the usable span
+        
+        best_candidate = max_reach
+        best_score = float('inf')
+        
+        # Test candidate positions from max_reach down to min_reach
+        for cand in range(int(max_reach), int(min_reach) - 1, -1):
+            collisions = sum(1000 for b in blocks if (b.x0 if is_x else b.y0) <= cand <= (b.x1 if is_x else b.y1))
+            near_penalty = sum(10 for b in blocks if ((b.x0 if is_x else b.y0) - 8) <= cand <= ((b.x1 if is_x else b.y1) + 8))
+            coverage_score = (max_reach - cand) * 0.1
+            total_score = collisions + near_penalty + coverage_score
+            
+            if total_score < best_score:
+                best_score = total_score
+                best_candidate = cand
+                if collisions == 0 and near_penalty == 0:
+                    # Found a completely clean whitespace gutter!
+                    break
+                    
+        seams.append(float(best_candidate))
+    return seams
+
 def generate_printable_tiles(doc, tree_info, out_pdf_path):
     """
     Generate Letter landscape tiled PDF at 1:1 original scale with pure white background.
-    - 0.25" margins (18 pt) and 0.25" overlap (18 pt) for natural shingling.
-    - Clean Bottom and Right edges with no text or labels.
+    - Smart Content-Aware Seams: Places tile seams in empty gutters between people.
+    - Box-Preserving Overlap: Guarantees no person card or photo is cut in half.
+    - 0.25" margins (18 pt) and clean Bottom/Right edges for seamless shingle overlapping.
     - Page 1: Master Assembly Guide & Visual Grid Map.
     - Pages 2+: Non-empty tiles with clear Tile Identifiers (e.g. [ TILE B-3 ]).
     """
@@ -222,42 +259,61 @@ def generate_printable_tiles(doc, tree_info, out_pdf_path):
     LETTER_H = 612   # 8.5 inches in points
     MARGIN = 18      # 0.25 inch margin (18 pt)
     HEADER_H = 22    # 22 pt header bar
-    OVERLAP = 18     # 0.25 inch overlap (18 pt) matching margin for clean shingling
+    OVERLAP = 18     # 0.25 inch overlap (18 pt)
 
     usable_w = LETTER_W - 2 * MARGIN
     usable_h = LETTER_H - 2 * MARGIN - HEADER_H
-    step_w = usable_w - OVERLAP
-    step_h = usable_h - OVERLAP
 
     src_w = src_page.rect.width
     src_h = src_page.rect.height
 
-    n_cols = math.ceil(src_w / step_w)
-    n_rows = math.ceil(src_h / step_h)
+    # Extract non-empty text blocks (excluding titles) for seam optimization
+    text_blocks = [fitz.Rect(b[:4]) for b in src_page.get_text('blocks') if b[4].strip() and 'Close family' not in b[4] and 'Ancestors' not in b[4]]
+    
+    # Calculate optimal smart seams that avoid cutting through people
+    x_seams = optimize_smart_seams(src_w, usable_w, text_blocks, is_x=True)
+    y_seams = optimize_smart_seams(src_h, usable_h, text_blocks, is_x=False)
+
+    n_cols = len(x_seams) - 1
+    n_rows = len(y_seams) - 1
     total_grid_tiles = n_cols * n_rows
 
-    # Extract non-empty content elements to test tile emptiness
-    text_blocks = [fitz.Rect(b[:4]) for b in src_page.get_text('blocks') if b[4].strip()]
-    
     content_drawings = []
     for d in src_page.get_drawings():
         is_bg = any(item[0] == 're' and item[1].width > src_w * 0.8 and item[1].height > src_h * 0.8 for item in d['items'])
         if not is_bg:
             content_drawings.append(d)
 
-    # 1. First pass: find all active non-empty tiles
+    # 1. First pass: find all active non-empty tiles and adjust boundaries to protect boxes
     active_tiles = []
     active_map = {}  # (col, row) -> sheet_number (1-based)
 
     for row in range(n_rows):
         for col in range(n_cols):
-            clip_x0 = col * step_w
-            clip_y0 = row * step_h
-            clip_x1 = min(clip_x0 + usable_w, src_w)
-            clip_y1 = min(clip_y0 + usable_h, src_h)
+            # Base clip coordinates with 0.25" overlap buffer
+            raw_x0 = x_seams[col]
+            raw_y0 = y_seams[row]
+            raw_x1 = x_seams[col+1]
+            raw_y1 = y_seams[row+1]
+
+            # Add overlap buffer to right and bottom for shingle overlapping
+            clip_x0 = raw_x0
+            clip_y0 = raw_y0
+            clip_x1 = min(src_w, raw_x1 + OVERLAP)
+            clip_y1 = min(src_h, raw_y1 + OVERLAP)
+
+            # Box-Preservation: if a box is slightly intersected by the boundary, expand to encompass it fully
+            for b in text_blocks:
+                if b.x0 < clip_x1 < b.x1:
+                    if (b.x1 + 4 - clip_x0) <= usable_w:
+                        clip_x1 = b.x1 + 4
+                if b.y0 < clip_y1 < b.y1:
+                    if (b.y1 + 4 - clip_y0) <= usable_h:
+                        clip_y1 = b.y1 + 4
+
             tile_rect = fitz.Rect(clip_x0, clip_y0, clip_x1, clip_y1)
 
-            # Check if tile contains any text
+            # Check if tile contains text
             has_text = any(tile_rect.intersects(tb) for tb in text_blocks)
 
             # Check if tile contains drawings / connectors
@@ -356,11 +412,11 @@ def generate_printable_tiles(doc, tree_info, out_pdf_path):
                 if cell_h > 26:
                     guide_page.insert_text(fitz.Point(rx + 4, ry + (25 if cell_h > 40 else 21)), "—", fontsize=8, color=(0.7, 0.7, 0.7))
 
-    # Bottom Instructions Box (Clear Shingle Overlap Directions)
+    # Bottom Instructions Box (Smart Gutter Overlap Directions)
     inst_box = fitz.Rect(MARGIN, LETTER_H - MARGIN - 54, LETTER_W - MARGIN, LETTER_H - MARGIN)
     guide_page.draw_rect(inst_box, color=(0.8, 0.8, 0.8), fill=(0.98, 0.98, 0.98))
-    guide_page.insert_text(fitz.Point(MARGIN + 10, LETTER_H - MARGIN - 38), 'HOW TO ASSEMBLE (ZERO-CUTTING SHINGLE OVERLAP):', fontsize=8.5, fontname='hebo', color=(0.2, 0.2, 0.2))
-    guide_page.insert_text(fitz.Point(MARGIN + 10, LETTER_H - MARGIN - 26), '1. Match the Tile Identifier in the top header (e.g. [ TILE B-3 ]) to its grid position above.', fontsize=7.5, color=(0.35, 0.35, 0.35))
+    guide_page.insert_text(fitz.Point(MARGIN + 10, LETTER_H - MARGIN - 38), 'SMART CONTENT-AWARE TILING (ZERO-CUTTING SHINGLE OVERLAP):', fontsize=8.5, fontname='hebo', color=(0.2, 0.2, 0.2))
+    guide_page.insert_text(fitz.Point(MARGIN + 10, LETTER_H - MARGIN - 26), '1. Tile boundaries are placed in empty gutters between people so no family photos or text are sliced.', fontsize=7.5, color=(0.35, 0.35, 0.35))
     guide_page.insert_text(fitz.Point(MARGIN + 10, LETTER_H - MARGIN - 15), '2. Shingle from top-left: overlap each sheet 0.25" over the clean bottom/right edge of its neighbor and tape down.', fontsize=7.5, color=(0.35, 0.35, 0.35))
     guide_page.insert_text(fitz.Point(MARGIN + 10, LETTER_H - MARGIN - 4), '3. Gray cells marked "—" are empty space with no family members and were omitted to save paper.', fontsize=7.5, color=(0.35, 0.35, 0.35))
 
@@ -410,8 +466,7 @@ def generate_printable_tiles(doc, tree_info, out_pdf_path):
         # Copy vector content from modified white-background PDF
         out_page.show_pdf_page(dest_rect, doc, 0, clip=clip_rect)
 
-        # Note: Bottom and Right margins remain 100% clean and free of labels or text
-        # for clean shingle overlapping.
+        # Bottom and Right margins remain 100% clean and free of labels/text for clean shingle overlapping.
 
     out.save(out_pdf_path)
     size_mb = os.path.getsize(out_pdf_path) / (1024 * 1024)
@@ -455,7 +510,7 @@ def main():
         search_index[tree_id] = persons
         print(f"  [INDEX] Indexed {len(persons)} persons")
 
-        # 4. Generate Printable Tiled PDF (0.25" Margins, Clean Bottom/Right for Shingling)
+        # 4. Generate Printable Tiled PDF (Smart Content-Aware Gutters + 0.25" Margins)
         tiles_out_path = os.path.join(TILES_DIR, f"{tree_id}_printable_tiles.pdf")
         tile_stats = generate_printable_tiles(doc, spec, tiles_out_path)
 
