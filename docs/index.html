@@ -666,6 +666,31 @@
       }
     }
 
+    /* Interactive Person Hotspots */
+    .hotspot-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .person-hotspot {
+      position: absolute;
+      cursor: pointer;
+      border-radius: 6px;
+      background: transparent;
+      transition: background 0.15s ease, border-color 0.15s ease;
+      pointer-events: auto;
+    }
+
+    .person-hotspot:hover {
+      background: rgba(212, 163, 115, 0.14);
+      border: 1.5px dashed rgba(212, 163, 115, 0.7);
+    }
+
     /* Mobile Responsive adjustments */
     @media (max-width: 768px) {
       body {
@@ -961,6 +986,9 @@
           svgEl.style.height = `${tree.svg_height_pt}px`;
         }
 
+        // Render interactive clickable hotspots for every person
+        renderHotspots();
+
         // Fit newly loaded tree to viewport
         fitToScreen(false);
       } catch (err) {
@@ -968,6 +996,70 @@
       } finally {
         loadingOverlay.classList.add('hidden');
       }
+    }
+
+    function renderHotspots() {
+      const oldLayer = document.getElementById('hotspotLayer');
+      if (oldLayer) oldLayer.remove();
+
+      const tree = treesData[currentTreeIndex];
+      if (!tree) return;
+      const persons = searchIndex[tree.id] || [];
+
+      const layer = document.createElement('div');
+      layer.className = 'hotspot-layer';
+      layer.id = 'hotspotLayer';
+
+      const boxW = 160;
+      const boxH = 88;
+
+      persons.forEach(person => {
+        const spot = document.createElement('div');
+        spot.className = 'person-hotspot';
+        
+        const left = person.x * tree.svg_width_pt - boxW / 2;
+        const top = person.y * tree.svg_height_pt - 14;
+
+        spot.style.left = `${left}px`;
+        spot.style.top = `${top}px`;
+        spot.style.width = `${boxW}px`;
+        spot.style.height = `${boxH}px`;
+        spot.setAttribute('title', `Click to view details for ${person.name}`);
+
+        spot.addEventListener('click', (e) => {
+          e.stopPropagation();
+          selectPersonFromTree(person);
+        });
+
+        layer.appendChild(spot);
+      });
+
+      svgContainer.appendChild(layer);
+    }
+
+    function selectPersonFromTree(person) {
+      const tree = treesData[currentTreeIndex];
+      const personX = person.x * tree.svg_width_pt;
+      const personY = person.y * tree.svg_height_pt;
+
+      // Show highlight ring around person's box
+      highlightPersonBox(personX, personY);
+
+      // If currently zoomed out, smoothly zoom in to comfortable reading size
+      if (scale < 1.4) {
+        const targetScale = 2.4;
+        const vw = viewport.clientWidth;
+        const vh = viewport.clientHeight;
+        scale = targetScale;
+        tx = (vw / 2) - (personX * scale);
+        ty = (vh / 2) - (personY * scale);
+        updateTransform(true);
+      }
+
+      // Show info modal with details
+      modalPersonName.textContent = person.name;
+      modalPersonDetails.textContent = person.details || 'Scottish lineage member';
+      personModal.classList.add('open');
     }
 
     // ==========================================================================
@@ -1180,10 +1272,15 @@
     function setupEventListeners() {
       setupSearch();
 
-      // Mouse drag panning
+      // Mouse drag panning & canvas click
+      let clickOriginX = 0;
+      let clickOriginY = 0;
+
       viewport.addEventListener('mousedown', (e) => {
         if (e.target.closest('.controls-overlay') || e.target.closest('.person-modal')) return;
         isDragging = true;
+        clickOriginX = e.clientX;
+        clickOriginY = e.clientY;
         dragStartX = e.clientX - tx;
         dragStartY = e.clientY - ty;
       });
@@ -1195,8 +1292,15 @@
         updateTransform(false);
       });
 
-      window.addEventListener('mouseup', () => {
-        isDragging = false;
+      window.addEventListener('mouseup', (e) => {
+        if (isDragging) {
+          isDragging = false;
+          const movedDist = Math.hypot(e.clientX - clickOriginX, e.clientY - clickOriginY);
+          // If clicked on empty space (not dragged and not clicking on a hotspot/modal/button)
+          if (movedDist < 5 && !e.target.closest('.person-hotspot') && !e.target.closest('.controls-overlay') && !e.target.closest('.person-modal') && !e.target.closest('.search-container')) {
+            closePersonModal();
+          }
+        }
       });
 
       // Mouse Wheel Zoom
