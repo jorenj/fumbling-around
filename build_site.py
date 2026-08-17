@@ -305,10 +305,19 @@ def generate_printable_tiles(doc, tree_info, out_pdf_path):
     max_cols = 0
 
     content_drawings = []
+    all_tree_lines = []
     for d in src_page.get_drawings():
         is_bg = any(item[0] == 're' and item[1].width > src_w * 0.8 and item[1].height > src_h * 0.8 for item in d['items'])
         if not is_bg:
             content_drawings.append(d)
+            for item in d['items']:
+                if item[0] == 'l':
+                    all_tree_lines.append({
+                        'p1': item[1],
+                        'p2': item[2],
+                        'color': d['color'] or (0.714, 0.714, 0.714),
+                        'width': d['width'] or 1.5
+                    })
 
     for r in range(n_rows):
         y0 = y_seams[r]
@@ -543,6 +552,53 @@ def generate_printable_tiles(doc, tree_info, out_pdf_path):
 
         # Copy vector content from modified white-background PDF
         out_page.show_pdf_page(dest_rect, doc, 0, clip=clip_rect)
+
+        # Extend connecting lines across margins to the physical page edges for seamless assembly
+        x0, y0, x1, y1 = clip_rect.x0, clip_rect.y0, clip_rect.x1, clip_rect.y1
+        for l in all_tree_lines:
+            p1, p2, col, w = l['p1'], l['p2'], l['color'], l['width']
+            min_x, max_x = min(p1.x, p2.x), max(p1.x, p2.x)
+            min_y, max_y = min(p1.y, p2.y), max(p1.y, p2.y)
+
+            # Horizontal connecting lines
+            if abs(p1.y - p2.y) < 2.0:
+                ly = (p1.y + p2.y) / 2.0
+                if y0 - 2 <= ly <= y1 + 2:
+                    page_y = dest_rect.y0 + (ly - y0)
+                    # Extend across right margin to right edge of paper
+                    if min_x < x1 + 5 and max_x > x1 - 5:
+                        out_page.draw_line(
+                            fitz.Point(dest_rect.x0 + (x1 - x0), page_y),
+                            fitz.Point(LETTER_W, page_y),
+                            color=col, width=w
+                        )
+                    # Extend across left margin to left edge of paper
+                    if min_x < x0 + 5 and max_x > x0 - 5:
+                        out_page.draw_line(
+                            fitz.Point(0, page_y),
+                            fitz.Point(dest_rect.x0, page_y),
+                            color=col, width=w
+                        )
+
+            # Vertical connecting lines
+            elif abs(p1.x - p2.x) < 2.0:
+                lx = (p1.x + p2.x) / 2.0
+                if x0 - 2 <= lx <= x1 + 2:
+                    page_x = dest_rect.x0 + (lx - x0)
+                    # Extend across bottom margin to bottom edge of paper
+                    if min_y < y1 + 5 and max_y > y1 - 5:
+                        out_page.draw_line(
+                            fitz.Point(page_x, dest_rect.y0 + (y1 - y0)),
+                            fitz.Point(page_x, LETTER_H),
+                            color=col, width=w
+                        )
+                    # Extend across top margin to top edge of paper
+                    if min_y < y0 + 5 and max_y > y0 - 5:
+                        out_page.draw_line(
+                            fitz.Point(page_x, 0),
+                            fitz.Point(page_x, dest_rect.y0),
+                            color=col, width=w
+                        )
 
     out.save(out_pdf_path)
     size_mb = os.path.getsize(out_pdf_path) / (1024 * 1024)
