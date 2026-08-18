@@ -3,17 +3,17 @@
 build_site.py - Generate all website assets for Grannie's Family Trees website.
 
 Features:
-  - Seam-Clearing Layout Engine: Shifts person entries (photo + text + borders) away from
-    fixed Letter grid seams (X = 756, 1512... pt; Y = 554, 1108... pt) into available whitespace
-    gutters without overlapping neighboring entries.
-  - 100% Exact Visual Formatting: Preserves original typography, photos, and card appearance
+  - Complete Person Card Capture: Encompasses portrait photos, decorative frames, names, and detail spans.
+  - Seam-Clearing Layout Engine: Shifts person entries away from fixed Letter grid seams
+    (X = 756, 1512... pt; Y = 554, 1108... pt) into available whitespace gutters without overlapping neighboring entries.
+  - 100% Exact Visual Formatting: Preserves original typography, high-res photos, and card appearance
     using direct vector clip mapping from the source PDF.
   - Perfect Uniform Printable Grid: Every sheet is a standard Letter landscape page (11" x 8.5")
     at exact 1:1 true scale with uniform 10.5" x 7.69" printable areas (Col A, B, C... x Row 1, 2, 3...).
-  - Intact Connector Lines: Automatically reroutes and reconnects branch and descendant lines
-    to the shifted person positions.
+  - Continuous Connector Line Bleed: Any connecting lines crossing sheet boundaries extend across
+    margins all the way to the physical page edges so no lines are lost during physical assembly/shingling.
   - Page 1: Master Assembly Guide Sheet with complete visual grid matrix map.
-  - Page 2: Full Assembled View & Alignment Proof (scaled complete vector tree with all active sheet boundaries and tile badges overlaid).
+  - Page 2: Full Assembled View & Alignment Proof.
   - Pages 3+: Individual active printable sheets at exact 1:1 true scale with prominent [ TILE B-3 ] header badges.
   - 0.25" white printer hardware margins (18 pt).
   - 100% pure crisp white background (no ink waste on background tint).
@@ -113,18 +113,18 @@ def get_col_letter(col_idx: int) -> str:
 def make_background_white_and_remove_frame(doc):
     """
     1. Replace parchment background fill with pure white (1 1 1 rg) to save ink.
-    2. Eliminate outer decorative poster frame border (/form1 Do) for clean borderless prints.
+    2. Eliminate outer decorative poster frame border for clean borderless prints.
     """
     page = doc[0]
     for xref in page.get_contents():
         stream = doc.xref_stream(xref).decode('latin1')
         stream_mod = re.sub(r'\.949\s+\.949\s+\.937\s+rg', '1 1 1 rg', stream)
-        stream_mod = re.sub(r'/[Ff]orm\d+\s+Do', '          ', stream_mod)
         doc.update_stream(xref, stream_mod.encode('latin1'))
 
 def extract_entities(page):
     """
     Extract all discrete Person Entities, Titles, and Vector Connector Lines from a page.
+    Captures the complete person card bounding box including portrait photos and decorative frames.
     """
     td = page.get_text('dict')
     spans = []
@@ -153,7 +153,7 @@ def extract_entities(page):
                                 'color': s['color']
                             })
 
-    imgs = [fitz.Rect(im['bbox']) for im in page.get_image_info() if im['bbox'][2] - im['bbox'][0] < 300 and im['bbox'][3] - im['bbox'][1] < 300]
+    imgs = [fitz.Rect(im['bbox']) for im in page.get_image_info() if 10 < im['bbox'][2] - im['bbox'][0] < 300 and 10 < im['bbox'][3] - im['bbox'][1] < 300]
 
     persons = []
     used_spans = set()
@@ -177,25 +177,29 @@ def extract_entities(page):
                     p_items.append(os)
                     used_spans.add(other_idx)
 
-        # Associated photo
-        p_img = None
+        # Associated photo and decorative frame (located directly ABOVE the name text)
+        p_imgs = []
         for im_idx, im_rect in enumerate(imgs):
-            if im_idx not in used_imgs:
-                if abs(im_rect.y0 - p_rect.y0) < 40 and -70 < (p_rect.x0 - im_rect.x1) < 20:
-                    p_rect.include_rect(im_rect)
-                    p_img = im_rect
-                    used_imgs.add(im_idx)
-                    break
+            if 0 <= (p_rect.y0 - im_rect.y0) < 95 and abs((im_rect.x0 + im_rect.x1)/2 - (p_rect.x0 + p_rect.x1)/2) < 70:
+                p_rect.include_rect(im_rect)
+                p_imgs.append(im_rect)
+                used_imgs.add(im_idx)
 
-        # Associated detail spans (birth, death, marriage)
+        # Associated detail spans (birth, death, marriage - located BELOW name)
         p_details = []
         for s_idx, s in enumerate(spans):
             if s_idx not in used_spans and 'Bold' not in s['font']:
-                if (p_rect.x0 - 30) <= s['bbox'].x0 <= (p_rect.x1 + 30) and 0 <= (s['bbox'].y0 - p_rect.y0) < 120:
+                if (p_rect.x0 - 30) <= s['bbox'].x0 <= (p_rect.x1 + 30) and 0 <= (s['bbox'].y0 - p_rect.y0) < 140:
                     p_rect.include_rect(s['bbox'])
                     p_items.append(s)
                     p_details.append(s['text'])
                     used_spans.add(s_idx)
+
+        # Add 4 pt margin around complete card
+        p_rect.x0 -= 4
+        p_rect.y0 -= 4
+        p_rect.x1 += 4
+        p_rect.y1 += 4
 
         full_name = clean_text(' '.join(it['text'] for it in p_items if 'Bold' in it.get('font', '')))
         detail_clean = clean_text(' '.join(p_details))
@@ -206,7 +210,7 @@ def extract_entities(page):
             'details': detail_clean,
             'rect': fitz.Rect(p_rect),
             'orig_rect': fitz.Rect(p_rect),
-            'img': p_img,
+            'photos_count': len(p_imgs),
             'items': p_items,
             'shift_x': 0.0,
             'shift_y': 0.0
@@ -390,6 +394,7 @@ def generate_printable_tiles(orig_doc, persons, titles, lines, tree_info, out_pd
     """
     Generate Letter landscape tiled PDF in a perfect, uniform, rectangular grid at 1:1 true scale.
     Renders person cards directly from orig_doc with 100% exact vector typography and photos.
+    Extends connecting lines across margins to the physical page edges so no lines are lost during physical assembly.
     """
     src_page = orig_doc[0]
     src_w = src_page.rect.width
@@ -411,7 +416,6 @@ def generate_printable_tiles(orig_doc, persons, titles, lines, tree_info, out_pd
             x1 = (c + 1) * PRINTABLE_W
             tile_rect = fitz.Rect(x0, y0, x1, y1)
 
-            # Check if any person, title, or line intersects this tile
             has_person = any(tile_rect.intersects(p['rect']) for p in persons)
             has_title = any(tile_rect.intersects(t['bbox']) for t in titles)
             has_line = False
@@ -554,7 +558,7 @@ def generate_printable_tiles(orig_doc, persons, titles, lines, tree_info, out_pd
         )
         proof_page.show_pdf_page(nb, orig_doc, 0, clip=orig_box)
 
-    # Draw person cards on proof
+    # Draw person cards on proof (with photos & frames)
     for p in persons:
         orig_box = p['orig_rect']
         nb = fitz.Rect(
@@ -612,16 +616,35 @@ def generate_printable_tiles(orig_doc, persons, titles, lines, tree_info, out_pd
         coord_str = f"Col {get_col_letter(col)}, Row {row+1} (Grid {n_cols} × {n_rows})"
         out_page.insert_text(fitz.Point(LETTER_W - MARGIN - 170, MARGIN + HEADER_H - 7), coord_str, fontsize=7.5, color=(0.35, 0.35, 0.35))
 
-        # 1. Draw Connector Lines in this tile
+        # 1. Draw Connector Lines in this tile (with margin extensions so no lines are lost)
         for l in lines:
             p1 = l.get('new_p1', l['p1'])
             p2 = l.get('new_p2', l['p2'])
-            l_rect = fitz.Rect(min(p1.x, p2.x), min(p1.y, p2.y), max(p1.x, p2.x), max(p1.y, p2.y))
-            if clip_rect.intersects(l_rect):
-                # Map to page coordinates
-                page_p1 = fitz.Point(MARGIN + (p1.x - x0), MARGIN + HEADER_H + (p1.y - y0))
-                page_p2 = fitz.Point(MARGIN + (p2.x - x0), MARGIN + HEADER_H + (p2.y - y0))
-                out_page.draw_line(page_p1, page_p2, color=l['color'], width=l['width'])
+            min_lx, max_lx = min(p1.x, p2.x), max(p1.x, p2.x)
+            min_ly, max_ly = min(p1.y, p2.y), max(p1.y, p2.y)
+
+            # Check if line intersects this tile
+            if not (max_lx < x0 - 2 or min_lx > x1 + 2 or max_ly < y0 - 2 or min_ly > y1 + 2):
+                page_x1 = MARGIN + (p1.x - x0)
+                page_y1 = MARGIN + HEADER_H + (p1.y - y0)
+                page_x2 = MARGIN + (p2.x - x0)
+                page_y2 = MARGIN + HEADER_H + (p2.y - y0)
+
+                # Horizontal line: extend to left/right paper edges if crossing seams
+                if abs(p1.y - p2.y) < 2.0:
+                    py = (page_y1 + page_y2) / 2
+                    px_start = page_x1 if min_lx >= x0 else 0.0
+                    px_end = page_x2 if max_lx <= x1 else LETTER_W
+                    out_page.draw_line(fitz.Point(px_start, py), fitz.Point(px_end, py), color=l['color'], width=l['width'])
+
+                # Vertical line: extend to top/bottom paper edges if crossing seams
+                elif abs(p1.x - p2.x) < 2.0:
+                    px = (page_x1 + page_x2) / 2
+                    py_start = page_y1 if min_ly >= y0 else 0.0
+                    py_end = page_y2 if max_ly <= y1 else LETTER_H
+                    out_page.draw_line(fitz.Point(px, py_start), fitz.Point(px, py_end), color=l['color'], width=l['width'])
+                else:
+                    out_page.draw_line(fitz.Point(page_x1, page_y1), fitz.Point(page_x2, page_y2), color=l['color'], width=l['width'])
 
         # 2. Draw Titles in this tile
         for t in titles:
@@ -636,7 +659,7 @@ def generate_printable_tiles(orig_doc, persons, titles, lines, tree_info, out_pd
                 )
                 out_page.show_pdf_page(dest_b, orig_doc, 0, clip=orig_box)
 
-        # 3. Draw Person Cards in this tile (100% exact vector typography and photos)
+        # 3. Draw Person Cards in this tile (includes 100% exact portrait photos, frames, names, and details)
         for p in persons:
             if clip_rect.intersects(p['rect']):
                 pb = p['rect']
@@ -702,7 +725,7 @@ def main():
         page = orig_doc[0]
         sw, sh = page.rect.width, page.rect.height
 
-        # 1. Extract Person Entities, Titles, and Connectors
+        # 1. Extract Person Entities (with photos & frames), Titles, and Connectors
         persons, titles, lines = extract_entities(page)
         print(f"  [EXTRACT] Extracted {len(persons)} people, {len(titles)} titles, {len(lines)} connectors")
 
@@ -728,7 +751,7 @@ def main():
         search_index[tree_id] = tree_search_persons
         print(f"  [INDEX] Indexed {len(tree_search_persons)} persons")
 
-        # 5. Generate Printable Tiled PDF (Uniform Grid)
+        # 5. Generate Printable Tiled PDF (Uniform Grid + Photos & Frames + Continuous Lines)
         tiles_out_path = os.path.join(TILES_DIR, f"{tree_id}_printable_tiles.pdf")
         tile_stats = generate_printable_tiles(orig_doc, persons, titles, lines, spec, tiles_out_path)
 
@@ -751,7 +774,7 @@ def main():
             'tile_pdf': f"tiles/{tree_id}_printable_tiles.pdf",
             'svg_file': f"svg/{tree_id}.svg",
             'tiles': tile_stats['tiles'],
-            'build_version': f"v3.0 • {datetime.datetime.now().strftime('%b %d, %Y %H:%M')}"
+            'build_version': f"v3.1 • {datetime.datetime.now().strftime('%b %d, %Y %H:%M')}"
         })
 
     # Save search index
