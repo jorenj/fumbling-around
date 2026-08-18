@@ -3,16 +3,20 @@
 build_site.py - Generate all website assets for Grannie's Family Trees website.
 
 Features:
-  - Zero-Cut Generational Tier Architecture: Slices along natural generational whitespace gaps
-    horizontally, and scans each row independently for clean vertical gutters between families.
-    Guarantees 0 severed profiles, 0 cut photos, and 0 clipped text blocks.
-  - Uniform Printable Sheets: Every sheet is standard Letter landscape (11" x 8.5") at exact 1:1 true scale.
+  - Seam-Clearing Layout Engine: Shifts person entries (photo + text + borders) away from
+    fixed Letter grid seams (X = 756, 1512... pt; Y = 554, 1108... pt) into available whitespace
+    gutters without overlapping neighboring entries.
+  - 100% Exact Visual Formatting: Preserves original typography, photos, and card appearance
+    using direct vector clip mapping from the source PDF.
+  - Perfect Uniform Printable Grid: Every sheet is a standard Letter landscape page (11" x 8.5")
+    at exact 1:1 true scale with uniform 10.5" x 7.69" printable areas (Col A, B, C... x Row 1, 2, 3...).
+  - Intact Connector Lines: Automatically reroutes and reconnects branch and descendant lines
+    to the shifted person positions.
   - Page 1: Master Assembly Guide Sheet with complete visual grid matrix map.
   - Page 2: Full Assembled View & Alignment Proof (scaled complete vector tree with all active sheet boundaries and tile badges overlaid).
   - Pages 3+: Individual active printable sheets at exact 1:1 true scale with prominent [ TILE B-3 ] header badges.
   - 0.25" white printer hardware margins (18 pt).
   - 100% pure crisp white background (no ink waste on background tint).
-  - Automatic elimination of empty whitespace tiles (saves 35-50% paper).
 """
 
 import os
@@ -79,6 +83,15 @@ TREE_SPECS = [
     },
 ]
 
+LETTER_W = 792.0   # 11 inches in points (landscape)
+LETTER_H = 612.0   # 8.5 inches in points
+MARGIN = 18.0      # 0.25 inch margin (18 pt)
+HEADER_H = 22.0    # 22 pt header bar
+
+PRINTABLE_W = LETTER_W - 2 * MARGIN  # 756 pt (10.50 in)
+PRINTABLE_H = LETTER_H - 2 * MARGIN - HEADER_H  # 554 pt (7.69 in)
+MARGIN_SAFE = 15.0  # Minimum clearance from any grid seam line
+
 def clean_text(s: str) -> str:
     """Clean OCR / PDF split text and whitespace."""
     s = s.replace('\n', ' ')
@@ -91,6 +104,12 @@ def clean_text(s: str) -> str:
     s = re.sub(r'\s+', ' ', s).strip()
     return s
 
+def get_col_letter(col_idx: int) -> str:
+    """Convert column index (0-based) to letter (A, B, ... Z, AA, AB...)."""
+    if col_idx < 26:
+        return chr(65 + col_idx)
+    return chr(65 + col_idx // 26 - 1) + chr(65 + col_idx % 26)
+
 def make_background_white_and_remove_frame(doc):
     """
     1. Replace parchment background fill with pure white (1 1 1 rg) to save ink.
@@ -99,244 +118,309 @@ def make_background_white_and_remove_frame(doc):
     page = doc[0]
     for xref in page.get_contents():
         stream = doc.xref_stream(xref).decode('latin1')
-        # Pure white background
         stream_mod = re.sub(r'\.949\s+\.949\s+\.937\s+rg', '1 1 1 rg', stream)
-        # Eliminate outer frame border
         stream_mod = re.sub(r'/[Ff]orm\d+\s+Do', '          ', stream_mod)
         doc.update_stream(xref, stream_mod.encode('latin1'))
 
-def export_svg(doc, tree_id, out_dir):
-    """Export page 0 of document to SVG."""
-    page = doc[0]
-    svg_data = page.get_svg_image()
-    out_path = os.path.join(out_dir, f'{tree_id}.svg')
-    with open(out_path, 'w', encoding='utf-8') as f:
-        f.write(svg_data)
-    size_mb = len(svg_data) / (1024 * 1024)
-    print(f"  [SVG] Generated {out_path} ({size_mb:.2f} MB)")
-    return out_path
-
-def extract_search_data(doc):
-    """Extract persons with normalized coordinates from document."""
-    page = doc[0]
-    pw, ph = page.rect.width, page.rect.height
-    text_dict = page.get_text('dict')
-
-    name_spans = []
-    detail_spans = []
-
-    for block in text_dict['blocks']:
-        if block['type'] == 0:
-            for line in block['lines']:
-                for span in line['spans']:
-                    txt = span['text'].strip()
-                    if not txt:
-                        continue
-                    if span['size'] > 20:
-                        continue  # Skip title
-                    # 9pt bold names
-                    if abs(span['size'] - 9.0) < 0.6 and 'Bold' in span['font']:
-                        name_spans.append({
-                            'text': txt,
-                            'bbox': span['bbox'],
-                            'x': (span['bbox'][0] + span['bbox'][2]) / 2,
-                            'y': span['bbox'][1],
-                            'raw': span['bbox']
-                        })
-                    # 8.2pt details (birth, death, marriage)
-                    elif abs(span['size'] - 8.2) < 0.6:
-                        detail_spans.append({
-                            'text': txt,
-                            'bbox': span['bbox'],
-                            'x': span['bbox'][0],
-                            'y': span['bbox'][1]
-                        })
-
-    # Sort top-to-bottom, left-to-right
-    name_spans.sort(key=lambda s: (s['y'], s['x']))
-    merged_persons = []
-    used = set()
-
-    for i, n1 in enumerate(name_spans):
-        if i in used:
-            continue
-        curr_text = [n1['text']]
-        min_x = n1['raw'][0]
-        max_x = n1['raw'][2]
-        min_y = n1['raw'][1]
-        max_y = n1['raw'][3]
-        used.add(i)
-
-        for j, n2 in enumerate(name_spans):
-            if j in used:
-                continue
-            x_close = abs(n1['x'] - n2['x']) < 60 or abs(n1['raw'][0] - n2['raw'][0]) < 35
-            y_close = abs(n1['y'] - n2['y']) < 24
-            if x_close and y_close:
-                curr_text.append(n2['text'])
-                min_x = min(min_x, n2['raw'][0])
-                max_x = max(max_x, n2['raw'][2])
-                min_y = min(min_y, n2['raw'][1])
-                max_y = max(max_y, n2['raw'][3])
-                used.add(j)
-
-        full_name = clean_text(' '.join(curr_text))
-        cx = (min_x + max_x) / 2
-        cy = (min_y + max_y) / 2
-
-        person_details = []
-        for ds in detail_spans:
-            dx = ds['bbox'][0]
-            dy = ds['bbox'][1]
-            if abs(dx - min_x) < 80 and 0 <= (dy - max_y) < 140:
-                person_details.append(ds['text'])
-
-        detail_clean = clean_text(' '.join(person_details))
-
-        merged_persons.append({
-            'name': full_name,
-            'details': detail_clean,
-            'x': round(cx / pw, 5),
-            'y': round(cy / ph, 5),
-            'raw_x': round(cx, 1),
-            'raw_y': round(cy, 1),
-        })
-
-    return merged_persons
-
-def get_col_letter(col_idx: int) -> str:
-    """Convert column index (0-based) to letter (A, B, ... Z, AA, AB...)."""
-    if col_idx < 26:
-        return chr(65 + col_idx)
-    return chr(65 + col_idx // 26 - 1) + chr(65 + col_idx % 26)
-
-def generate_printable_tiles(doc, tree_info, out_pdf_path):
+def extract_entities(page):
     """
-    Generate Letter landscape tiled PDF at 1:1 original true scale with pure white background.
-    - Zero-Cut Content-Aware Tiling: Slices along clean generational tier gaps (horizontal)
-      and clean whitespace gutters (vertical) so NO text or profiles are ever cut in half.
-    - 0.25" margins (18 pt) on standard Letter sheets.
-    - Page 1: Master Assembly Guide & Visual Grid Map.
-    - Page 2: Full Assembled View & Alignment Proof.
-    - Pages 3+: Individual active tiles at 1:1 true scale with [ TILE B-3 ] badges.
+    Extract all discrete Person Entities, Titles, and Vector Connector Lines from a page.
     """
-    src_page = doc[0]
-
-    LETTER_W = 792   # 11 inches in points (landscape)
-    LETTER_H = 612   # 8.5 inches in points
-    MARGIN = 18      # 0.25 inch margin (18 pt)
-    HEADER_H = 22    # 22 pt header bar
-
-    usable_w = LETTER_W - 2 * MARGIN  # 756 pt
-    usable_h = LETTER_H - 2 * MARGIN - HEADER_H  # 554 pt
-
-    src_w = src_page.rect.width
-    src_h = src_page.rect.height
-
-    # Extract all text spans and photos
-    td = src_page.get_text('dict')
+    td = page.get_text('dict')
     spans = []
+    titles = []
+
     for b in td['blocks']:
         if b['type'] == 0:
             for l in b['lines']:
                 for s in l['spans']:
                     txt = s['text'].strip()
                     if txt:
-                        spans.append(fitz.Rect(s['bbox']))
-    img_rects = [fitz.Rect(im['bbox']) for im in src_page.get_image_info() if im['bbox'][2] - im['bbox'][0] < 300 and im['bbox'][3] - im['bbox'][1] < 300]
-    all_content_boxes = spans + img_rects
+                        if s['size'] > 20:
+                            titles.append({
+                                'text': txt,
+                                'bbox': fitz.Rect(s['bbox']),
+                                'font': s['font'],
+                                'size': s['size'],
+                                'color': s['color']
+                            })
+                        else:
+                            spans.append({
+                                'text': txt,
+                                'bbox': fitz.Rect(s['bbox']),
+                                'font': s['font'],
+                                'size': s['size'],
+                                'color': s['color']
+                            })
 
-    # 1. Compute Horizontal Generational Tier Seams
-    MAX_TIER_H = 340 if tree_info['id'] == '000061' else usable_h
+    imgs = [fitz.Rect(im['bbox']) for im in page.get_image_info() if im['bbox'][2] - im['bbox'][0] < 300 and im['bbox'][3] - im['bbox'][1] < 300]
 
-    # Scan for empty horizontal lines across full chart width
-    y_gaps = []
-    for y in range(40, int(src_h - 40)):
-        if not any(b.y0 - 2 < y < b.y1 + 2 for b in all_content_boxes):
-            y_gaps.append(y)
+    persons = []
+    used_spans = set()
+    used_imgs = set()
+    name_spans = [i for i, s in enumerate(spans) if 'Bold' in s['font'] and s['size'] >= 8.5]
 
-    y_seams = [0.0]
-    while y_seams[-1] < src_h:
-        curr_y = y_seams[-1]
-        if curr_y + MAX_TIER_H >= src_h:
-            y_seams.append(src_h)
-            break
-        reach_y = min(curr_y + MAX_TIER_H, src_h)
-        candidates = [y for y in y_gaps if y > curr_y + 80 and y <= reach_y]
-        if candidates:
-            # Pick gap with widest clearance
-            best_y = max(candidates, key=lambda y: min((min(abs(y - b.y0), abs(y - b.y1)) for b in all_content_boxes), default=100))
-            y_seams.append(float(best_y))
-        else:
-            y_seams.append(float(reach_y))
+    for n_idx in name_spans:
+        if n_idx in used_spans:
+            continue
+        ns = spans[n_idx]
+        p_rect = fitz.Rect(ns['bbox'])
+        p_items = [ns]
+        used_spans.add(n_idx)
 
-    n_rows = len(y_seams) - 1
+        # Multi-line name
+        for other_idx in name_spans:
+            if other_idx not in used_spans:
+                os = spans[other_idx]
+                if abs(ns['bbox'].x0 - os['bbox'].x0) < 50 and 0 < (os['bbox'].y0 - ns['bbox'].y0) < 25:
+                    p_rect.include_rect(os['bbox'])
+                    p_items.append(os)
+                    used_spans.add(other_idx)
 
-    # 2. Compute Vertical Whitespace Gutters for each Tier
-    content_drawings = []
-    for d in src_page.get_drawings():
-        is_bg = any(item[0] == 're' and item[1].width > src_w * 0.8 and item[1].height > src_h * 0.8 for item in d['items'])
+        # Associated photo
+        p_img = None
+        for im_idx, im_rect in enumerate(imgs):
+            if im_idx not in used_imgs:
+                if abs(im_rect.y0 - p_rect.y0) < 40 and -70 < (p_rect.x0 - im_rect.x1) < 20:
+                    p_rect.include_rect(im_rect)
+                    p_img = im_rect
+                    used_imgs.add(im_idx)
+                    break
+
+        # Associated detail spans (birth, death, marriage)
+        p_details = []
+        for s_idx, s in enumerate(spans):
+            if s_idx not in used_spans and 'Bold' not in s['font']:
+                if (p_rect.x0 - 30) <= s['bbox'].x0 <= (p_rect.x1 + 30) and 0 <= (s['bbox'].y0 - p_rect.y0) < 120:
+                    p_rect.include_rect(s['bbox'])
+                    p_items.append(s)
+                    p_details.append(s['text'])
+                    used_spans.add(s_idx)
+
+        full_name = clean_text(' '.join(it['text'] for it in p_items if 'Bold' in it.get('font', '')))
+        detail_clean = clean_text(' '.join(p_details))
+
+        persons.append({
+            'id': len(persons),
+            'name': full_name,
+            'details': detail_clean,
+            'rect': fitz.Rect(p_rect),
+            'orig_rect': fitz.Rect(p_rect),
+            'img': p_img,
+            'items': p_items,
+            'shift_x': 0.0,
+            'shift_y': 0.0
+        })
+
+    # Extract all connecting line drawings
+    lines = []
+    for d in page.get_drawings():
+        is_bg = any(item[0] == 're' and item[1].width > page.rect.width * 0.8 for item in d['items'])
         if not is_bg:
-            content_drawings.append(d)
+            for item in d['items']:
+                if item[0] == 'l':
+                    lines.append({
+                        'p1': item[1],
+                        'p2': item[2],
+                        'color': d['color'] or (0.714, 0.714, 0.714),
+                        'width': d['width'] or 1.5
+                    })
+
+    return persons, titles, lines
+
+def optimize_tree_layout(persons, titles, lines, sw, sh):
+    """
+    Shifts person cards away from fixed Letter grid seams while preserving relative hierarchy,
+    order, and spacing without introducing overlaps.
+    """
+    n_cols = math.ceil(sw / PRINTABLE_W)
+    n_rows = math.ceil(sh / PRINTABLE_H)
+    grid_x = [c * PRINTABLE_W for c in range(1, n_cols)]
+    grid_y = [r * PRINTABLE_H for r in range(1, n_rows)]
+
+    # -------------------------------------------------------------------------
+    # 1. Vertical Optimization (Generational Tier Shifting)
+    # -------------------------------------------------------------------------
+    gen_rows = []
+    for p in sorted(persons, key=lambda x: x['rect'].y0):
+        placed = False
+        for gr in gen_rows:
+            if abs(p['rect'].y0 - gr['mean_y']) < 35:
+                gr['persons'].append(p)
+                gr['mean_y'] = sum(x['rect'].y0 for x in gr['persons']) / len(gr['persons'])
+                placed = True
+                break
+        if not placed:
+            gen_rows.append({'mean_y': p['rect'].y0, 'persons': [p]})
+    gen_rows.sort(key=lambda gr: gr['mean_y'])
+
+    for gr in gen_rows:
+        min_y = min(p['rect'].y0 for p in gr['persons'])
+        max_y = max(p['rect'].y1 for p in gr['persons'])
+        for gy in grid_y:
+            if min_y < gy + MARGIN_SAFE and max_y > gy - MARGIN_SAFE:
+                shift_up = (gy - MARGIN_SAFE) - max_y
+                shift_down = (gy + MARGIN_SAFE) - min_y
+                gr_idx = gen_rows.index(gr)
+                prev_max_y = max(p['rect'].y1 for p in gen_rows[gr_idx - 1]['persons']) if gr_idx > 0 else 0
+                next_min_y = min(p['rect'].y0 for p in gen_rows[gr_idx + 1]['persons']) if gr_idx < len(gen_rows) - 1 else sh
+                space_up = min_y - prev_max_y
+                space_down = next_min_y - max_y
+                chosen = shift_up if (space_up > abs(shift_up) + 15 or abs(shift_up) < shift_down) else shift_down
+                for p in gr['persons']:
+                    p['shift_y'] += chosen
+                    p['rect'].y0 += chosen
+                    p['rect'].y1 += chosen
+
+    # -------------------------------------------------------------------------
+    # 2. Horizontal Optimization (Seam Clearing per Generational Row)
+    # -------------------------------------------------------------------------
+    for gr in gen_rows:
+        gr['persons'].sort(key=lambda x: x['rect'].x0)
+        groups = []
+        for p in gr['persons']:
+            if not groups:
+                groups.append([p])
+            else:
+                prev_max = groups[-1][-1]['rect'].x1
+                if p['rect'].x0 - prev_max < 20.0:
+                    groups[-1].append(p)
+                else:
+                    groups.append([p])
+
+        for _ in range(35):
+            moved = False
+            for g_idx, grp in enumerate(groups):
+                gx0 = min(p['rect'].x0 for p in grp)
+                gx1 = max(p['rect'].x1 for p in grp)
+
+                for seam_x in grid_x:
+                    if gx0 < seam_x + MARGIN_SAFE and gx1 > seam_x - MARGIN_SAFE:
+                        moved = True
+                        push_left = (seam_x - MARGIN_SAFE) - gx1
+                        push_right = (seam_x + MARGIN_SAFE) - gx0
+
+                        prev_g_x1 = max(p['rect'].x1 for p in groups[g_idx - 1]) if g_idx > 0 else 0
+                        next_g_x0 = min(p['rect'].x0 for p in groups[g_idx + 1]) if g_idx < len(groups) - 1 else sw
+
+                        left_space = gx0 - prev_g_x1
+                        right_space = next_g_x0 - gx1
+
+                        if left_space > abs(push_left) + 10:
+                            chosen_push = push_left
+                        elif right_space > push_right + 10:
+                            chosen_push = push_right
+                        else:
+                            chosen_push = push_left if abs(push_left) < push_right else push_right
+
+                        for p in grp:
+                            p['shift_x'] += chosen_push
+                            p['rect'].x0 += chosen_push
+                            p['rect'].x1 += chosen_push
+
+                        # Propagate push right
+                        for i in range(g_idx, len(groups) - 1):
+                            curr_max = max(p['rect'].x1 for p in groups[i])
+                            nxt_min = min(p['rect'].x0 for p in groups[i+1])
+                            if nxt_min < curr_max + 8.0:
+                                diff = (curr_max + 8.0) - nxt_min
+                                for p in groups[i+1]:
+                                    p['shift_x'] += diff
+                                    p['rect'].x0 += diff
+                                    p['rect'].x1 += diff
+
+                        # Propagate push left
+                        for i in range(g_idx, 0, -1):
+                            curr_min = min(p['rect'].x0 for p in groups[i])
+                            prev_max = max(p['rect'].x1 for p in groups[i-1])
+                            if prev_max > curr_min - 8.0:
+                                diff = (curr_min - 8.0) - prev_max
+                                for p in groups[i-1]:
+                                    p['shift_x'] += diff
+                                    p['rect'].x0 += diff
+                                    p['rect'].x1 += diff
+            if not moved:
+                break
+
+    # -------------------------------------------------------------------------
+    # 3. Chart Title Seam Clearing
+    # -------------------------------------------------------------------------
+    for t in titles:
+        t_rect = t['bbox']
+        t['shift_x'] = 0.0
+        t['shift_y'] = 0.0
+        for gx in grid_x:
+            if t_rect.x0 < gx + MARGIN_SAFE and t_rect.x1 > gx - MARGIN_SAFE:
+                push_left = (gx - MARGIN_SAFE) - t_rect.x1
+                push_right = (gx + MARGIN_SAFE) - t_rect.x0
+                chosen = push_left if abs(push_left) < push_right else push_right
+                t['shift_x'] += chosen
+                t_rect.x0 += chosen
+                t_rect.x1 += chosen
+
+    # -------------------------------------------------------------------------
+    # 4. Connector Line Displacement Mapping
+    # -------------------------------------------------------------------------
+    for l in lines:
+        p1, p2 = l['p1'], l['p2']
+        closest_p1 = min(persons, key=lambda p: (min(abs(p1.x - p['orig_rect'].x0), abs(p1.x - p['orig_rect'].x1))**2 + min(abs(p1.y - p['orig_rect'].y0), abs(p1.y - p['orig_rect'].y1))**2))
+        closest_p2 = min(persons, key=lambda p: (min(abs(p2.x - p['orig_rect'].x0), abs(p2.x - p['orig_rect'].x1))**2 + min(abs(p2.y - p['orig_rect'].y0), abs(p2.y - p['orig_rect'].y1))**2))
+
+        d1 = math.hypot(p1.x - (closest_p1['orig_rect'].x0 + closest_p1['orig_rect'].x1)/2, p1.y - (closest_p1['orig_rect'].y0 + closest_p1['orig_rect'].y1)/2)
+        d2 = math.hypot(p2.x - (closest_p2['orig_rect'].x0 + closest_p2['orig_rect'].x1)/2, p2.y - (closest_p2['orig_rect'].y0 + closest_p2['orig_rect'].y1)/2)
+
+        p1_shift_x = closest_p1['shift_x'] if d1 < 120 else 0.0
+        p1_shift_y = closest_p1['shift_y'] if d1 < 120 else 0.0
+        p2_shift_x = closest_p2['shift_x'] if d2 < 120 else 0.0
+        p2_shift_y = closest_p2['shift_y'] if d2 < 120 else 0.0
+
+        if abs(p1.x - p2.x) < 2.0:  # Vertical line
+            avg_shift_x = (p1_shift_x + p2_shift_x) / 2 if (p1_shift_x and p2_shift_x) else (p1_shift_x or p2_shift_x)
+            l['new_p1'] = fitz.Point(p1.x + avg_shift_x, p1.y + p1_shift_y)
+            l['new_p2'] = fitz.Point(p2.x + avg_shift_x, p2.y + p2_shift_y)
+        elif abs(p1.y - p2.y) < 2.0:  # Horizontal line
+            avg_shift_y = (p1_shift_y + p2_shift_y) / 2 if (p1_shift_y and p2_shift_y) else (p1_shift_y or p2_shift_y)
+            l['new_p1'] = fitz.Point(p1.x + p1_shift_x, p1.y + avg_shift_y)
+            l['new_p2'] = fitz.Point(p2.x + p2_shift_x, p2.y + avg_shift_y)
+        else:
+            l['new_p1'] = fitz.Point(p1.x + p1_shift_x, p1.y + p1_shift_y)
+            l['new_p2'] = fitz.Point(p2.x + p2_shift_x, p2.y + p2_shift_y)
+
+def generate_printable_tiles(orig_doc, persons, titles, lines, tree_info, out_pdf_path):
+    """
+    Generate Letter landscape tiled PDF in a perfect, uniform, rectangular grid at 1:1 true scale.
+    Renders person cards directly from orig_doc with 100% exact vector typography and photos.
+    """
+    src_page = orig_doc[0]
+    src_w = src_page.rect.width
+    src_h = src_page.rect.height
+
+    n_cols = math.ceil(src_w / PRINTABLE_W)
+    n_rows = math.ceil(src_h / PRINTABLE_H)
 
     all_grid_tiles = []
     active_tiles = []
-    active_map = {}  # (col, row) -> sheet_num
-    max_cols = 0
+    active_map = {}
 
     for r in range(n_rows):
-        y0 = y_seams[r]
-        y1 = y_seams[r+1]
-        row_boxes = [b for b in all_content_boxes if (y0 <= b.y0 and b.y1 <= y1) or (b.y0 < y0 < b.y1) or (b.y0 < y1 < b.y1)]
+        y0 = r * PRINTABLE_H
+        y1 = (r + 1) * PRINTABLE_H
 
-        # Build X seams for this row
-        x_seams = [0.0]
-        while x_seams[-1] < src_w:
-            curr_x = x_seams[-1]
-            if curr_x + usable_w >= src_w:
-                x_seams.append(src_w)
-                break
-            reach_x = min(curr_x + usable_w, src_w)
-            
-            # Find clean X in [curr_x + 50, reach_x] with ZERO intersecting boxes
-            best_x = reach_x
-            best_clearance = -1
-            for x in range(int(reach_x), int(curr_x + 50), -1):
-                coll = sum(1 for b in row_boxes if b.x0 - 2 <= x <= b.x1 + 2)
-                if coll == 0:
-                    clearance = min((min(abs(x - b.x0), abs(x - b.x1)) for b in row_boxes), default=100)
-                    if clearance > best_clearance:
-                        best_clearance = clearance
-                        best_x = x
-                        if clearance > 15:
-                            break
-            x_seams.append(float(best_x))
-
-        num_cols = len(x_seams) - 1
-        if num_cols > max_cols:
-            max_cols = num_cols
-
-        for c in range(num_cols):
-            x0 = x_seams[c]
-            x1 = x_seams[c+1]
+        for c in range(n_cols):
+            x0 = c * PRINTABLE_W
+            x1 = (c + 1) * PRINTABLE_W
             tile_rect = fitz.Rect(x0, y0, x1, y1)
 
-            # Check if tile has text or drawings
-            has_text = any(tile_rect.intersects(b) for b in all_content_boxes)
-            has_drawing = False
-            for d in content_drawings:
-                for item in d['items']:
-                    if item[0] == 'l':
-                        p1, p2 = item[1], item[2]
-                        line_rect = fitz.Rect(min(p1.x, p2.x), min(p1.y, p2.y), max(p1.x, p2.x), max(p1.y, p2.y))
-                        if tile_rect.intersects(line_rect):
-                            has_drawing = True
-                            break
-                    elif item[0] == 're':
-                        if tile_rect.intersects(item[1]):
-                            has_drawing = True
-                            break
-                if has_drawing:
+            # Check if any person, title, or line intersects this tile
+            has_person = any(tile_rect.intersects(p['rect']) for p in persons)
+            has_title = any(tile_rect.intersects(t['bbox']) for t in titles)
+            has_line = False
+            for l in lines:
+                p1 = l.get('new_p1', l['p1'])
+                p2 = l.get('new_p2', l['p2'])
+                line_rect = fitz.Rect(min(p1.x, p2.x), min(p1.y, p2.y), max(p1.x, p2.x), max(p1.y, p2.y))
+                if tile_rect.intersects(line_rect):
+                    has_line = True
                     break
 
             tile_info = {
@@ -348,7 +432,7 @@ def generate_printable_tiles(doc, tree_info, out_pdf_path):
                 'y0': round(y0, 1),
                 'x1': round(x1, 1),
                 'y1': round(y1, 1),
-                'has_content': has_text or has_drawing
+                'has_content': has_person or has_title or has_line
             }
             all_grid_tiles.append(tile_info)
 
@@ -374,7 +458,7 @@ def generate_printable_tiles(doc, tree_info, out_pdf_path):
     header_box = fitz.Rect(MARGIN, MARGIN, LETTER_W - MARGIN, MARGIN + 42)
     guide_page.draw_rect(header_box, color=(0.15, 0.35, 0.55), fill=(0.94, 0.97, 1.0), width=1.5)
     guide_page.insert_text(fitz.Point(MARGIN + 12, MARGIN + 18), 'ASSEMBLY GUIDE & GRID MAP', fontsize=13, fontname='hebo', color=(0.1, 0.25, 0.45))
-    guide_page.insert_text(fitz.Point(MARGIN + 12, MARGIN + 33), f"{tree_info['name']}   |   Layout: {max_cols} Cols × {n_rows} Tiers ({total_grid_tiles} Tiles)   |   {total_active_pages} Printable Sheets", fontsize=8.5, color=(0.3, 0.4, 0.5))
+    guide_page.insert_text(fitz.Point(MARGIN + 12, MARGIN + 33), f"{tree_info['name']}   |   Uniform Grid: {n_cols} Cols × {n_rows} Rows ({n_cols*n_rows} Cells)   |   {total_active_pages} Sheets (+ Guides)", fontsize=8.5, color=(0.3, 0.4, 0.5))
 
     # Grid Dimensions
     grid_top = MARGIN + 56
@@ -383,21 +467,18 @@ def generate_printable_tiles(doc, tree_info, out_pdf_path):
     grid_bottom = LETTER_H - MARGIN - 64
     grid_height = grid_bottom - grid_top
 
-    cell_w = grid_width / max_cols
+    cell_w = grid_width / n_cols
     cell_h = grid_height / n_rows
 
-    # Top Column Headers (A, B, C...)
-    for c in range(max_cols):
+    for c in range(n_cols):
         col_letter = get_col_letter(c)
         cx = grid_left + c * cell_w + cell_w / 2 - (5 if len(col_letter) == 1 else 9)
         guide_page.insert_text(fitz.Point(cx, grid_top - 5), col_letter, fontsize=8.5, fontname='hebo', color=(0.2, 0.35, 0.5))
 
-    # Left Row Headers (R1, R2, R3...)
     for r in range(n_rows):
         ry = grid_top + r * cell_h + cell_h / 2 + 4
         guide_page.insert_text(fitz.Point(grid_left - 22, ry), f"R{r+1}", fontsize=8, fontname='hebo', color=(0.2, 0.35, 0.5))
 
-    # Draw Grid Cells
     for t in all_grid_tiles:
         r = t['row']
         c = t['col']
@@ -409,26 +490,23 @@ def generate_printable_tiles(doc, tree_info, out_pdf_path):
         if (c, r) in active_map:
             s_num = active_map[(c, r)]
             guide_page.draw_rect(cell_rect, color=(0.25, 0.55, 0.8), fill=(0.92, 0.96, 1.0), width=1.2)
-            
-            font_id = 9 if max_cols <= 8 else 6.5
-            font_sheet = 7.5 if max_cols <= 8 else 5.0
-            
+            font_id = 9 if n_cols <= 8 else 6.5
+            font_sheet = 7.5 if n_cols <= 8 else 5.0
             guide_page.insert_text(fitz.Point(rx + 3, ry + (14 if cell_h > 35 else 10)), tile_id, fontsize=font_id, fontname='hebo', color=(0.1, 0.3, 0.55))
             if cell_h > 20:
                 guide_page.insert_text(fitz.Point(rx + 3, ry + (25 if cell_h > 35 else 19)), f"#{s_num}", fontsize=font_sheet, color=(0.15, 0.5, 0.25))
         else:
             guide_page.draw_rect(cell_rect, color=(0.84, 0.84, 0.84), fill=(0.96, 0.96, 0.96), width=0.5)
-            font_id = 8 if max_cols <= 8 else 5.5
+            font_id = 8 if n_cols <= 8 else 5.5
             guide_page.insert_text(fitz.Point(rx + 3, ry + (14 if cell_h > 35 else 10)), tile_id, fontsize=font_id, color=(0.65, 0.65, 0.65))
             if cell_h > 20:
                 guide_page.insert_text(fitz.Point(rx + 3, ry + (24 if cell_h > 35 else 18)), "—", fontsize=7.5, color=(0.7, 0.7, 0.7))
 
-    # Bottom Instructions Box
     inst_box = fitz.Rect(MARGIN, LETTER_H - MARGIN - 54, LETTER_W - MARGIN, LETTER_H - MARGIN)
     guide_page.draw_rect(inst_box, color=(0.8, 0.8, 0.8), fill=(0.98, 0.98, 0.98))
     guide_page.insert_text(fitz.Point(MARGIN + 10, LETTER_H - MARGIN - 38), 'ASSEMBLY INSTRUCTIONS:', fontsize=8.5, fontname='hebo', color=(0.2, 0.2, 0.2))
     guide_page.insert_text(fitz.Point(MARGIN + 10, LETTER_H - MARGIN - 26), '1. Page 2 shows the complete assembled poster with all sheet outlines overlaid for visual alignment reference.', fontsize=7.5, color=(0.35, 0.35, 0.35))
-    guide_page.insert_text(fitz.Point(MARGIN + 10, LETTER_H - MARGIN - 15), '2. Follow the grid above. Sheets are labeled with their column and tier (e.g., Tile A-1, B-1, A-2, B-2).', fontsize=7.5, color=(0.35, 0.35, 0.35))
+    guide_page.insert_text(fitz.Point(MARGIN + 10, LETTER_H - MARGIN - 15), '2. Follow the grid above. Sheets are labeled with their column and row (e.g., Tile A-1, B-1, A-2, B-2).', fontsize=7.5, color=(0.35, 0.35, 0.35))
     guide_page.insert_text(fitz.Point(MARGIN + 10, LETTER_H - MARGIN - 4), '3. Gray cells marked "—" are empty space and were omitted to save paper.', fontsize=7.5, color=(0.35, 0.35, 0.35))
 
     # =========================================================================
@@ -443,7 +521,7 @@ def generate_printable_tiles(doc, tree_info, out_pdf_path):
     proof_page.insert_text(fitz.Point(MARGIN + 10, MARGIN + 16), 'FULL ASSEMBLED VIEW & ALIGNMENT PROOF', fontsize=11, fontname='hebo', color=(0.1, 0.25, 0.45))
     proof_page.insert_text(fitz.Point(MARGIN + 10, MARGIN + 28), f"Visual proof of the full assembled family tree. Blue outlines show individual printable sheets ({total_active_pages} active sheets).", fontsize=7.5, color=(0.3, 0.4, 0.5))
 
-    # Full Vector Tree Render
+    # Full Vector Tree Render (scaled)
     proof_dest = fitz.Rect(MARGIN, MARGIN + 42, LETTER_W - MARGIN, LETTER_H - MARGIN)
     proof_scale = min(proof_dest.width / src_w, proof_dest.height / src_h)
     proof_w = src_w * proof_scale
@@ -455,8 +533,37 @@ def generate_printable_tiles(doc, tree_info, out_pdf_path):
         proof_dest.y0 + (proof_dest.height - proof_h) / 2 + proof_h
     )
 
-    # Render vector tree
-    proof_page.show_pdf_page(proof_fit, doc, 0)
+    # Draw lines on proof
+    for l in lines:
+        p1 = l.get('new_p1', l['p1'])
+        p2 = l.get('new_p2', l['p2'])
+        proof_page.draw_line(
+            fitz.Point(proof_fit.x0 + p1.x * proof_scale, proof_fit.y0 + p1.y * proof_scale),
+            fitz.Point(proof_fit.x0 + p2.x * proof_scale, proof_fit.y0 + p2.y * proof_scale),
+            color=l['color'], width=max(0.5, l['width'] * proof_scale)
+        )
+
+    # Draw titles on proof
+    for t in titles:
+        orig_box = fitz.Rect(t['bbox'].x0 - t['shift_x'], t['bbox'].y0 - t['shift_y'], t['bbox'].x1 - t['shift_x'], t['bbox'].y1 - t['shift_y'])
+        nb = fitz.Rect(
+            proof_fit.x0 + t['bbox'].x0 * proof_scale,
+            proof_fit.y0 + t['bbox'].y0 * proof_scale,
+            proof_fit.x0 + t['bbox'].x1 * proof_scale,
+            proof_fit.y0 + t['bbox'].y1 * proof_scale
+        )
+        proof_page.show_pdf_page(nb, orig_doc, 0, clip=orig_box)
+
+    # Draw person cards on proof
+    for p in persons:
+        orig_box = p['orig_rect']
+        nb = fitz.Rect(
+            proof_fit.x0 + p['rect'].x0 * proof_scale,
+            proof_fit.y0 + p['rect'].y0 * proof_scale,
+            proof_fit.x0 + p['rect'].x1 * proof_scale,
+            proof_fit.y0 + p['rect'].y1 * proof_scale
+        )
+        proof_page.show_pdf_page(nb, orig_doc, 0, clip=orig_box)
 
     # Superimpose Active Sheet Rectangles & Badges
     for t in active_tiles:
@@ -464,12 +571,10 @@ def generate_printable_tiles(doc, tree_info, out_pdf_path):
         y0_s = proof_fit.y0 + t['y0'] * proof_scale
         x1_s = proof_fit.x0 + t['x1'] * proof_scale
         y1_s = proof_fit.y0 + t['y1'] * proof_scale
-        
+
         s_rect = fitz.Rect(x0_s, y0_s, x1_s, y1_s)
-        # Blue outline
         proof_page.draw_rect(s_rect, color=(0.15, 0.45, 0.85), width=0.75)
-        
-        # Small corner badge
+
         badge_w = min(42, s_rect.width * 0.7)
         badge_h = min(11, s_rect.height * 0.4)
         if badge_w > 18 and badge_h > 6:
@@ -484,17 +589,17 @@ def generate_printable_tiles(doc, tree_info, out_pdf_path):
         col = tile['col']
         row = tile['row']
         tile_id = tile['tile_id']
+        x0, y0 = tile['x0'], tile['y0']
+        x1, y1 = tile['x1'], tile['y1']
         clip_rect = tile['clip_rect']
 
         out_page = out.new_page(width=LETTER_W, height=LETTER_H)
-
-        # Pure white background
         out_page.draw_rect(out_page.rect, color=(1, 1, 1), fill=(1, 1, 1))
 
         # Compact Header Bar at top
         header_rect = fitz.Rect(MARGIN, MARGIN, LETTER_W - MARGIN, MARGIN + HEADER_H)
         out_page.draw_rect(header_rect, color=(0.2, 0.35, 0.5), fill=(0.95, 0.97, 1.0))
-        
+
         # High-contrast prominent Tile ID badge on left
         badge_rect = fitz.Rect(MARGIN + 3, MARGIN + 3, MARGIN + 80, MARGIN + HEADER_H - 3)
         out_page.draw_rect(badge_rect, color=(0.15, 0.35, 0.55), fill=(0.15, 0.35, 0.55))
@@ -504,31 +609,56 @@ def generate_printable_tiles(doc, tree_info, out_pdf_path):
         out_page.insert_text(fitz.Point(MARGIN + 90, MARGIN + HEADER_H - 7), f"Sheet {idx+1} of {total_active_pages}   |   {tree_info['name']}", fontsize=8, color=(0.2, 0.2, 0.2))
 
         # Grid Coordinates on right
-        coord_str = f"Col {get_col_letter(col)}, Tier {row+1}"
-        out_page.insert_text(fitz.Point(LETTER_W - MARGIN - 150, MARGIN + HEADER_H - 7), coord_str, fontsize=7.5, color=(0.35, 0.35, 0.35))
+        coord_str = f"Col {get_col_letter(col)}, Row {row+1} (Grid {n_cols} × {n_rows})"
+        out_page.insert_text(fitz.Point(LETTER_W - MARGIN - 170, MARGIN + HEADER_H - 7), coord_str, fontsize=7.5, color=(0.35, 0.35, 0.35))
 
-        # Tile drawing area at EXACT 1:1 TRUE SCALE
-        dest_w = clip_rect.width
-        dest_h = clip_rect.height
-        dest_rect = fitz.Rect(
-            MARGIN, MARGIN + HEADER_H,
-            MARGIN + dest_w,
-            MARGIN + HEADER_H + dest_h
-        )
+        # 1. Draw Connector Lines in this tile
+        for l in lines:
+            p1 = l.get('new_p1', l['p1'])
+            p2 = l.get('new_p2', l['p2'])
+            l_rect = fitz.Rect(min(p1.x, p2.x), min(p1.y, p2.y), max(p1.x, p2.x), max(p1.y, p2.y))
+            if clip_rect.intersects(l_rect):
+                # Map to page coordinates
+                page_p1 = fitz.Point(MARGIN + (p1.x - x0), MARGIN + HEADER_H + (p1.y - y0))
+                page_p2 = fitz.Point(MARGIN + (p2.x - x0), MARGIN + HEADER_H + (p2.y - y0))
+                out_page.draw_line(page_p1, page_p2, color=l['color'], width=l['width'])
 
-        # Copy vector content from modified white-background PDF
-        out_page.show_pdf_page(dest_rect, doc, 0, clip=clip_rect)
+        # 2. Draw Titles in this tile
+        for t in titles:
+            if clip_rect.intersects(t['bbox']):
+                tb = t['bbox']
+                orig_box = fitz.Rect(tb.x0 - t['shift_x'], tb.y0 - t['shift_y'], tb.x1 - t['shift_x'], tb.y1 - t['shift_y'])
+                dest_b = fitz.Rect(
+                    MARGIN + (tb.x0 - x0),
+                    MARGIN + HEADER_H + (tb.y0 - y0),
+                    MARGIN + (tb.x1 - x0),
+                    MARGIN + HEADER_H + (tb.y1 - y0)
+                )
+                out_page.show_pdf_page(dest_b, orig_doc, 0, clip=orig_box)
+
+        # 3. Draw Person Cards in this tile (100% exact vector typography and photos)
+        for p in persons:
+            if clip_rect.intersects(p['rect']):
+                pb = p['rect']
+                orig_box = p['orig_rect']
+                dest_b = fitz.Rect(
+                    MARGIN + (pb.x0 - x0),
+                    MARGIN + HEADER_H + (pb.y0 - y0),
+                    MARGIN + (pb.x1 - x0),
+                    MARGIN + HEADER_H + (pb.y1 - y0)
+                )
+                out_page.show_pdf_page(dest_b, orig_doc, 0, clip=orig_box)
 
     out.save(out_pdf_path)
     size_mb = os.path.getsize(out_pdf_path) / (1024 * 1024)
     total_pdf_pages = len(out)
     print(f"  [TILES] Generated {out_pdf_path} ({total_pdf_pages} total PDF pages: 1 Guide Map + 1 Assembled Proof + {total_active_pages} tiles | {skipped_count} empty skipped | {size_mb:.2f} MB)")
-    
+
     return {
         'guide_pages': 2,
         'active_pages': total_active_pages,
         'total_pdf_pages': total_pdf_pages,
-        'grid_cols': max_cols,
+        'grid_cols': n_cols,
         'grid_rows': n_rows,
         'total_grid_tiles': total_grid_tiles,
         'skipped_empty': skipped_count,
@@ -544,9 +674,20 @@ def generate_printable_tiles(doc, tree_info, out_pdf_path):
         } for t in active_tiles]
     }
 
+def export_svg(orig_doc, tree_id, out_dir):
+    """Export lightweight vector SVG for the web app."""
+    page = orig_doc[0]
+    svg_data = page.get_svg_image()
+    out_path = os.path.join(out_dir, f'{tree_id}.svg')
+    with open(out_path, 'w', encoding='utf-8') as f:
+        f.write(svg_data)
+    size_mb = len(svg_data) / (1024 * 1024)
+    print(f"  [SVG] Generated {out_path} ({size_mb:.2f} MB)")
+    return out_path
+
 def main():
-    print("=== Building Grannie's Family Tree Website Assets ===")
-    
+    print("=== Building Grannie's Family Tree Website Assets (Seam-Clearing Layout Engine) ===")
+
     search_index = {}
     tree_metadata = []
 
@@ -554,26 +695,42 @@ def main():
         tree_id = spec['id']
         pdf_path = os.path.join(PDF_DIR, spec['file'])
         print(f"\nProcessing {tree_id}: {spec['name']}...")
-        
-        doc = fitz.open(pdf_path)
-        
-        # 1. Convert background to pure white and eliminate outer frame border
-        make_background_white_and_remove_frame(doc)
 
-        page = doc[0]
-        pw, ph = page.rect.width, page.rect.height
+        orig_doc = fitz.open(pdf_path)
+        make_background_white_and_remove_frame(orig_doc)
 
-        # 2. Export SVG with pure white background
-        export_svg(doc, tree_id, SVG_DIR)
+        page = orig_doc[0]
+        sw, sh = page.rect.width, page.rect.height
 
-        # 3. Extract Persons & Coordinates
-        persons = extract_search_data(doc)
-        search_index[tree_id] = persons
-        print(f"  [INDEX] Indexed {len(persons)} persons")
+        # 1. Extract Person Entities, Titles, and Connectors
+        persons, titles, lines = extract_entities(page)
+        print(f"  [EXTRACT] Extracted {len(persons)} people, {len(titles)} titles, {len(lines)} connectors")
 
-        # 4. Generate Printable Tiled PDF (Zero-Cut Generational Tier Slicing + 1:1 True Scale + Page 2 Assembled Proof)
+        # 2. Optimize Layout: Shift people & titles away from Letter grid seams
+        optimize_tree_layout(persons, titles, lines, sw, sh)
+
+        # 3. Export SVG for web app
+        export_svg(orig_doc, tree_id, SVG_DIR)
+
+        # 4. Build Search Index from updated coordinates
+        tree_search_persons = []
+        for p in persons:
+            cx = (p['rect'].x0 + p['rect'].x1) / 2
+            cy = (p['rect'].y0 + p['rect'].y1) / 2
+            tree_search_persons.append({
+                'name': p['name'],
+                'details': p['details'],
+                'x': round(cx / sw, 5),
+                'y': round(cy / sh, 5),
+                'raw_x': round(cx, 1),
+                'raw_y': round(cy, 1)
+            })
+        search_index[tree_id] = tree_search_persons
+        print(f"  [INDEX] Indexed {len(tree_search_persons)} persons")
+
+        # 5. Generate Printable Tiled PDF (Uniform Grid)
         tiles_out_path = os.path.join(TILES_DIR, f"{tree_id}_printable_tiles.pdf")
-        tile_stats = generate_printable_tiles(doc, spec, tiles_out_path)
+        tile_stats = generate_printable_tiles(orig_doc, persons, titles, lines, spec, tiles_out_path)
 
         tree_metadata.append({
             'id': tree_id,
@@ -582,8 +739,8 @@ def main():
             'description': spec['description'],
             'width_in': spec['width_in'],
             'height_in': spec['height_in'],
-            'svg_width_pt': pw,
-            'svg_height_pt': ph,
+            'svg_width_pt': sw,
+            'svg_height_pt': sh,
             'person_count': len(persons),
             'tile_pages': tile_stats['active_pages'],
             'total_pdf_pages': tile_stats['total_pdf_pages'],
@@ -594,7 +751,7 @@ def main():
             'tile_pdf': f"tiles/{tree_id}_printable_tiles.pdf",
             'svg_file': f"svg/{tree_id}.svg",
             'tiles': tile_stats['tiles'],
-            'build_version': f"v2.7 • {datetime.datetime.now().strftime('%b %d, %Y %H:%M')}"
+            'build_version': f"v3.0 • {datetime.datetime.now().strftime('%b %d, %Y %H:%M')}"
         })
 
     # Save search index
