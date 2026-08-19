@@ -187,14 +187,14 @@
         "h": 554.0
       },
       {
-        "tile_id": "F-4",
+        "tile_id": "A-5",
         "sheet_num": 15,
-        "col": 5,
-        "row": 3,
-        "x0": 3780.0,
-        "y0": 1662.0,
-        "x1": 4536.0,
-        "y1": 2216.0,
+        "col": 0,
+        "row": 4,
+        "x0": 0.0,
+        "y0": 2216.0,
+        "x1": 756.0,
+        "y1": 2770.0,
         "w": 756.0,
         "h": 554.0
       },
@@ -295,7 +295,7 @@
         "h": 554.0
       }
     ],
-    "build_version": "v3.1 \u2022 Aug 18, 2026 15:28"
+    "build_version": "v3.2 \u2022 Aug 19, 2026 09:30"
   },
   {
     "id": "000061",
@@ -307,12 +307,12 @@
     "svg_width_pt": 10888.0,
     "svg_height_pt": 2708.0,
     "person_count": 204,
-    "tile_pages": 34,
-    "total_pdf_pages": 36,
+    "tile_pages": 43,
+    "total_pdf_pages": 45,
     "grid_cols": 15,
     "grid_rows": 5,
     "total_grid_tiles": 75,
-    "skipped_empty": 41,
+    "skipped_empty": 32,
     "tile_pdf": "tiles/000061_printable_tiles.pdf",
     "svg_file": "svg/000061.svg",
     "tiles": [
@@ -713,8 +713,80 @@
         "h": 554.0
       },
       {
-        "tile_id": "J-5",
+        "tile_id": "N-4",
         "sheet_num": 34,
+        "col": 13,
+        "row": 3,
+        "x0": 9828.0,
+        "y0": 1662.0,
+        "x1": 10584.0,
+        "y1": 2216.0,
+        "w": 756.0,
+        "h": 554.0
+      },
+      {
+        "tile_id": "E-5",
+        "sheet_num": 35,
+        "col": 4,
+        "row": 4,
+        "x0": 3024.0,
+        "y0": 2216.0,
+        "x1": 3780.0,
+        "y1": 2770.0,
+        "w": 756.0,
+        "h": 554.0
+      },
+      {
+        "tile_id": "F-5",
+        "sheet_num": 36,
+        "col": 5,
+        "row": 4,
+        "x0": 3780.0,
+        "y0": 2216.0,
+        "x1": 4536.0,
+        "y1": 2770.0,
+        "w": 756.0,
+        "h": 554.0
+      },
+      {
+        "tile_id": "G-5",
+        "sheet_num": 37,
+        "col": 6,
+        "row": 4,
+        "x0": 4536.0,
+        "y0": 2216.0,
+        "x1": 5292.0,
+        "y1": 2770.0,
+        "w": 756.0,
+        "h": 554.0
+      },
+      {
+        "tile_id": "H-5",
+        "sheet_num": 38,
+        "col": 7,
+        "row": 4,
+        "x0": 5292.0,
+        "y0": 2216.0,
+        "x1": 6048.0,
+        "y1": 2770.0,
+        "w": 756.0,
+        "h": 554.0
+      },
+      {
+        "tile_id": "I-5",
+        "sheet_num": 39,
+        "col": 8,
+        "row": 4,
+        "x0": 6048.0,
+        "y0": 2216.0,
+        "x1": 6804.0,
+        "y1": 2770.0,
+        "w": 756.0,
+        "h": 554.0
+      },
+      {
+        "tile_id": "J-5",
+        "sheet_num": 40,
         "col": 9,
         "row": 4,
         "x0": 6804.0,
@@ -723,9 +795,45 @@
         "y1": 2770.0,
         "w": 756.0,
         "h": 554.0
+      },
+      {
+        "tile_id": "K-5",
+        "sheet_num": 41,
+        "col": 10,
+        "row": 4,
+        "x0": 7560.0,
+        "y0": 2216.0,
+        "x1": 8316.0,
+        "y1": 2770.0,
+        "w": 756.0,
+        "h": 554.0
+      },
+      {
+        "tile_id": "L-5",
+        "sheet_num": 42,
+        "col": 11,
+        "row": 4,
+        "x0": 8316.0,
+        "y0": 2216.0,
+        "x1": 9072.0,
+        "y1": 2770.0,
+        "w": 756.0,
+        "h": 554.0
+      },
+      {
+        "tile_id": "M-5",
+        "sheet_num": 43,
+        "col": 12,
+        "row": 4,
+        "x0": 9072.0,
+        "y0": 2216.0,
+        "x1": 9828.0,
+        "y1": 2770.0,
+        "w": 756.0,
+        "h": 554.0
       }
     ],
-    "build_version": "v3.1 \u2022 Aug 18, 2026 15:28"
+    "build_version": "v3.2 \u2022 Aug 19, 2026 09:30"
   },
   {
     "id": "000067",
@@ -987,7 +1095,7 @@
         "h": 554.0
       }
     ],
-    "build_version": "v3.1 \u2022 Aug 18, 2026 15:28"
+    "build_version": "v3.2 \u2022 Aug 19, 2026 09:30"
   },
   {
     "id": "000069",
@@ -1201,7 +1309,7 @@
         "h": 554.0
       }
     ],
-    "build_version": "v3.1 \u2022 Aug 18, 2026 15:28"
+    "build_version": "v3.2 \u2022 Aug 19, 2026 09:30"
   },
   {
     "id": "000071",
@@ -1213,30 +1321,18 @@
     "svg_width_pt": 2943.0,
     "svg_height_pt": 1995.0,
     "person_count": 40,
-    "tile_pages": 12,
-    "total_pdf_pages": 14,
+    "tile_pages": 10,
+    "total_pdf_pages": 12,
     "grid_cols": 4,
     "grid_rows": 4,
     "total_grid_tiles": 16,
-    "skipped_empty": 4,
+    "skipped_empty": 6,
     "tile_pdf": "tiles/000071_printable_tiles.pdf",
     "svg_file": "svg/000071.svg",
     "tiles": [
       {
-        "tile_id": "A-1",
-        "sheet_num": 1,
-        "col": 0,
-        "row": 0,
-        "x0": 0.0,
-        "y0": 0.0,
-        "x1": 756.0,
-        "y1": 554.0,
-        "w": 756.0,
-        "h": 554.0
-      },
-      {
         "tile_id": "B-1",
-        "sheet_num": 2,
+        "sheet_num": 1,
         "col": 1,
         "row": 0,
         "x0": 756.0,
@@ -1247,20 +1343,8 @@
         "h": 554.0
       },
       {
-        "tile_id": "C-1",
-        "sheet_num": 3,
-        "col": 2,
-        "row": 0,
-        "x0": 1512.0,
-        "y0": 0.0,
-        "x1": 2268.0,
-        "y1": 554.0,
-        "w": 756.0,
-        "h": 554.0
-      },
-      {
         "tile_id": "A-2",
-        "sheet_num": 4,
+        "sheet_num": 2,
         "col": 0,
         "row": 1,
         "x0": 0.0,
@@ -1272,7 +1356,7 @@
       },
       {
         "tile_id": "B-2",
-        "sheet_num": 5,
+        "sheet_num": 3,
         "col": 1,
         "row": 1,
         "x0": 756.0,
@@ -1284,7 +1368,7 @@
       },
       {
         "tile_id": "C-2",
-        "sheet_num": 6,
+        "sheet_num": 4,
         "col": 2,
         "row": 1,
         "x0": 1512.0,
@@ -1296,7 +1380,7 @@
       },
       {
         "tile_id": "D-2",
-        "sheet_num": 7,
+        "sheet_num": 5,
         "col": 3,
         "row": 1,
         "x0": 2268.0,
@@ -1308,7 +1392,7 @@
       },
       {
         "tile_id": "A-3",
-        "sheet_num": 8,
+        "sheet_num": 6,
         "col": 0,
         "row": 2,
         "x0": 0.0,
@@ -1320,7 +1404,7 @@
       },
       {
         "tile_id": "B-3",
-        "sheet_num": 9,
+        "sheet_num": 7,
         "col": 1,
         "row": 2,
         "x0": 756.0,
@@ -1332,7 +1416,7 @@
       },
       {
         "tile_id": "C-3",
-        "sheet_num": 10,
+        "sheet_num": 8,
         "col": 2,
         "row": 2,
         "x0": 1512.0,
@@ -1344,7 +1428,7 @@
       },
       {
         "tile_id": "D-3",
-        "sheet_num": 11,
+        "sheet_num": 9,
         "col": 3,
         "row": 2,
         "x0": 2268.0,
@@ -1356,7 +1440,7 @@
       },
       {
         "tile_id": "C-4",
-        "sheet_num": 12,
+        "sheet_num": 10,
         "col": 2,
         "row": 3,
         "x0": 1512.0,
@@ -1367,6 +1451,6 @@
         "h": 554.0
       }
     ],
-    "build_version": "v3.1 \u2022 Aug 18, 2026 15:28"
+    "build_version": "v3.2 \u2022 Aug 19, 2026 09:30"
   }
 ]

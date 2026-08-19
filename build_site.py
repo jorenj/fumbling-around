@@ -3,11 +3,12 @@
 build_site.py - Generate all website assets for Grannie's Family Trees website.
 
 Features:
+  - Compact Portrait Icons (60% scale): Downscales large portrait frames to neat, elegant icons.
+  - Enhanced Readable Typography (115% scale): Increases text size by 15% for crisp, legible names and dates on paper.
   - Complete Person Card Capture: Encompasses portrait photos, decorative frames, names, and detail spans.
   - Seam-Clearing Layout Engine: Shifts person entries away from fixed Letter grid seams
     (X = 756, 1512... pt; Y = 554, 1108... pt) into available whitespace gutters without overlapping neighboring entries.
-  - 100% Exact Visual Formatting: Preserves original typography, high-res photos, and card appearance
-    using direct vector clip mapping from the source PDF.
+  - 100% Exact Vector Formatting: Preserves original typography and high-res photos using direct vector clip mapping.
   - Perfect Uniform Printable Grid: Every sheet is a standard Letter landscape page (11" x 8.5")
     at exact 1:1 true scale with uniform 10.5" x 7.69" printable areas (Col A, B, C... x Row 1, 2, 3...).
   - Continuous Connector Line Bleed: Any connecting lines crossing sheet boundaries extend across
@@ -92,6 +93,9 @@ PRINTABLE_W = LETTER_W - 2 * MARGIN  # 756 pt (10.50 in)
 PRINTABLE_H = LETTER_H - 2 * MARGIN - HEADER_H  # 554 pt (7.69 in)
 MARGIN_SAFE = 15.0  # Minimum clearance from any grid seam line
 
+PHOTO_SCALE = 0.60  # Compact portrait icon (60% of original bulky size)
+TEXT_SCALE = 1.15   # Slightly larger readable typography (+15%)
+
 def clean_text(s: str) -> str:
     """Clean OCR / PDF split text and whitespace."""
     s = s.replace('\n', ' ')
@@ -124,7 +128,7 @@ def make_background_white_and_remove_frame(doc):
 def extract_entities(page):
     """
     Extract all discrete Person Entities, Titles, and Vector Connector Lines from a page.
-    Captures the complete person card bounding box including portrait photos and decorative frames.
+    Structures each card with compact photo and larger text dimensions.
     """
     td = page.get_text('dict')
     spans = []
@@ -164,8 +168,8 @@ def extract_entities(page):
         if n_idx in used_spans:
             continue
         ns = spans[n_idx]
-        p_rect = fitz.Rect(ns['bbox'])
-        p_items = [ns]
+        p_text_rect = fitz.Rect(ns['bbox'])
+        p_name_spans = [ns]
         used_spans.add(n_idx)
 
         # Multi-line name
@@ -173,15 +177,14 @@ def extract_entities(page):
             if other_idx not in used_spans:
                 os = spans[other_idx]
                 if abs(ns['bbox'].x0 - os['bbox'].x0) < 50 and 0 < (os['bbox'].y0 - ns['bbox'].y0) < 25:
-                    p_rect.include_rect(os['bbox'])
-                    p_items.append(os)
+                    p_text_rect.include_rect(os['bbox'])
+                    p_name_spans.append(os)
                     used_spans.add(other_idx)
 
         # Associated photo and decorative frame (located directly ABOVE the name text)
         p_imgs = []
         for im_idx, im_rect in enumerate(imgs):
-            if 0 <= (p_rect.y0 - im_rect.y0) < 95 and abs((im_rect.x0 + im_rect.x1)/2 - (p_rect.x0 + p_rect.x1)/2) < 70:
-                p_rect.include_rect(im_rect)
+            if 0 <= (p_text_rect.y0 - im_rect.y0) < 95 and abs((im_rect.x0 + im_rect.x1)/2 - (p_text_rect.x0 + p_text_rect.x1)/2) < 70:
                 p_imgs.append(im_rect)
                 used_imgs.add(im_idx)
 
@@ -189,29 +192,43 @@ def extract_entities(page):
         p_details = []
         for s_idx, s in enumerate(spans):
             if s_idx not in used_spans and 'Bold' not in s['font']:
-                if (p_rect.x0 - 30) <= s['bbox'].x0 <= (p_rect.x1 + 30) and 0 <= (s['bbox'].y0 - p_rect.y0) < 140:
-                    p_rect.include_rect(s['bbox'])
-                    p_items.append(s)
+                if (p_text_rect.x0 - 20) <= s['bbox'].x0 <= (p_text_rect.x1 + 20) and 0 <= (s['bbox'].y0 - p_text_rect.y0) < 140:
+                    p_text_rect.include_rect(s['bbox'])
                     p_details.append(s['text'])
                     used_spans.add(s_idx)
 
-        # Add 4 pt margin around complete card
-        p_rect.x0 -= 4
-        p_rect.y0 -= 4
-        p_rect.x1 += 4
-        p_rect.y1 += 4
+        photo_orig = None
+        if p_imgs:
+            photo_orig = fitz.Rect(p_imgs[0])
+            for im in p_imgs[1:]:
+                photo_orig.include_rect(im)
 
-        full_name = clean_text(' '.join(it['text'] for it in p_items if 'Bold' in it.get('font', '')))
+        # Card footprint with compact photo (0.60x) and larger text (1.15x)
+        photo_w = (photo_orig.width * PHOTO_SCALE) if photo_orig else 0.0
+        photo_h = (photo_orig.height * PHOTO_SCALE) if photo_orig else 0.0
+        text_w = p_text_rect.width * TEXT_SCALE
+        text_h = p_text_rect.height * TEXT_SCALE
+
+        card_w = max(photo_w, text_w) + 6.0
+        card_h = (photo_h + 4.0 + text_h) if photo_orig else text_h
+
+        center_x = (p_text_rect.x0 + p_text_rect.x1) / 2
+        card_y0 = (photo_orig.y0 + (photo_orig.height - photo_h)) if photo_orig else p_text_rect.y0
+
+        card_rect = fitz.Rect(center_x - card_w/2, card_y0, center_x + card_w/2, card_y0 + card_h)
+
+        full_name = clean_text(' '.join(it['text'] for it in p_name_spans))
         detail_clean = clean_text(' '.join(p_details))
 
         persons.append({
             'id': len(persons),
             'name': full_name,
             'details': detail_clean,
-            'rect': fitz.Rect(p_rect),
-            'orig_rect': fitz.Rect(p_rect),
+            'photo_orig': photo_orig,
+            'text_orig': fitz.Rect(p_text_rect),
+            'rect': fitz.Rect(card_rect),
+            'orig_rect': fitz.Rect(card_rect),
             'photos_count': len(p_imgs),
-            'items': p_items,
             'shift_x': 0.0,
             'shift_y': 0.0
         })
@@ -393,8 +410,8 @@ def optimize_tree_layout(persons, titles, lines, sw, sh):
 def generate_printable_tiles(orig_doc, persons, titles, lines, tree_info, out_pdf_path):
     """
     Generate Letter landscape tiled PDF in a perfect, uniform, rectangular grid at 1:1 true scale.
-    Renders person cards directly from orig_doc with 100% exact vector typography and photos.
-    Extends connecting lines across margins to the physical page edges so no lines are lost during physical assembly.
+    Renders person cards with compact portrait icons and larger, highly readable typography.
+    Extends connecting lines across margins to the physical page edges.
     """
     src_page = orig_doc[0]
     src_w = src_page.rect.width
@@ -558,16 +575,34 @@ def generate_printable_tiles(orig_doc, persons, titles, lines, tree_info, out_pd
         )
         proof_page.show_pdf_page(nb, orig_doc, 0, clip=orig_box)
 
-    # Draw person cards on proof (with photos & frames)
+    # Draw person cards on proof (compact photo + larger text)
     for p in persons:
-        orig_box = p['orig_rect']
-        nb = fitz.Rect(
-            proof_fit.x0 + p['rect'].x0 * proof_scale,
-            proof_fit.y0 + p['rect'].y0 * proof_scale,
-            proof_fit.x0 + p['rect'].x1 * proof_scale,
-            proof_fit.y0 + p['rect'].y1 * proof_scale
+        cx = (p['rect'].x0 + p['rect'].x1) / 2
+        p_y0 = p['rect'].y0
+
+        if p['photo_orig']:
+            pw = p['photo_orig'].width * PHOTO_SCALE * proof_scale
+            ph = p['photo_orig'].height * PHOTO_SCALE * proof_scale
+            nb_photo = fitz.Rect(
+                proof_fit.x0 + cx * proof_scale - pw/2,
+                proof_fit.y0 + p_y0 * proof_scale,
+                proof_fit.x0 + cx * proof_scale + pw/2,
+                proof_fit.y0 + p_y0 * proof_scale + ph
+            )
+            proof_page.show_pdf_page(nb_photo, orig_doc, 0, clip=p['photo_orig'])
+            p_text_y = p_y0 + (p['photo_orig'].height * PHOTO_SCALE + 4.0)
+        else:
+            p_text_y = p_y0
+
+        tw = p['text_orig'].width * TEXT_SCALE * proof_scale
+        th = p['text_orig'].height * TEXT_SCALE * proof_scale
+        nb_text = fitz.Rect(
+            proof_fit.x0 + cx * proof_scale - tw/2,
+            proof_fit.y0 + p_text_y * proof_scale,
+            proof_fit.x0 + cx * proof_scale + tw/2,
+            proof_fit.y0 + p_text_y * proof_scale + th
         )
-        proof_page.show_pdf_page(nb, orig_doc, 0, clip=orig_box)
+        proof_page.show_pdf_page(nb_text, orig_doc, 0, clip=p['text_orig'])
 
     # Superimpose Active Sheet Rectangles & Badges
     for t in active_tiles:
@@ -659,18 +694,27 @@ def generate_printable_tiles(orig_doc, persons, titles, lines, tree_info, out_pd
                 )
                 out_page.show_pdf_page(dest_b, orig_doc, 0, clip=orig_box)
 
-        # 3. Draw Person Cards in this tile (includes 100% exact portrait photos, frames, names, and details)
+        # 3. Draw Person Cards in this tile (compact photo icon + 15% larger text)
         for p in persons:
             if clip_rect.intersects(p['rect']):
-                pb = p['rect']
-                orig_box = p['orig_rect']
-                dest_b = fitz.Rect(
-                    MARGIN + (pb.x0 - x0),
-                    MARGIN + HEADER_H + (pb.y0 - y0),
-                    MARGIN + (pb.x1 - x0),
-                    MARGIN + HEADER_H + (pb.y1 - y0)
-                )
-                out_page.show_pdf_page(dest_b, orig_doc, 0, clip=orig_box)
+                sheet_cx = MARGIN + (p['rect'].x0 + p['rect'].x1) / 2 - x0
+                sheet_y0 = MARGIN + HEADER_H + (p['rect'].y0 - y0)
+
+                # Draw Compact Portrait Icon (60% scale)
+                if p['photo_orig']:
+                    photo_w = p['photo_orig'].width * PHOTO_SCALE
+                    photo_h = p['photo_orig'].height * PHOTO_SCALE
+                    dest_photo = fitz.Rect(sheet_cx - photo_w/2, sheet_y0, sheet_cx + photo_w/2, sheet_y0 + photo_h)
+                    out_page.show_pdf_page(dest_photo, orig_doc, 0, clip=p['photo_orig'])
+                    text_y0 = sheet_y0 + photo_h + 4.0
+                else:
+                    text_y0 = sheet_y0
+
+                # Draw Enhanced Readable Typography (115% scale)
+                text_w = p['text_orig'].width * TEXT_SCALE
+                text_h = p['text_orig'].height * TEXT_SCALE
+                dest_text = fitz.Rect(sheet_cx - text_w/2, text_y0, sheet_cx + text_w/2, text_y0 + text_h)
+                out_page.show_pdf_page(dest_text, orig_doc, 0, clip=p['text_orig'])
 
     out.save(out_pdf_path)
     size_mb = os.path.getsize(out_pdf_path) / (1024 * 1024)
@@ -709,7 +753,7 @@ def export_svg(orig_doc, tree_id, out_dir):
     return out_path
 
 def main():
-    print("=== Building Grannie's Family Tree Website Assets (Seam-Clearing Layout Engine) ===")
+    print("=== Building Grannie's Family Tree Website Assets (Compact Photo + Larger Text Engine) ===")
 
     search_index = {}
     tree_metadata = []
@@ -725,7 +769,7 @@ def main():
         page = orig_doc[0]
         sw, sh = page.rect.width, page.rect.height
 
-        # 1. Extract Person Entities (with photos & frames), Titles, and Connectors
+        # 1. Extract Person Entities (with compact photo & larger text footprint), Titles, and Connectors
         persons, titles, lines = extract_entities(page)
         print(f"  [EXTRACT] Extracted {len(persons)} people, {len(titles)} titles, {len(lines)} connectors")
 
@@ -751,7 +795,7 @@ def main():
         search_index[tree_id] = tree_search_persons
         print(f"  [INDEX] Indexed {len(tree_search_persons)} persons")
 
-        # 5. Generate Printable Tiled PDF (Uniform Grid + Photos & Frames + Continuous Lines)
+        # 5. Generate Printable Tiled PDF (Compact Photo + 15% Larger Text + Continuous Lines)
         tiles_out_path = os.path.join(TILES_DIR, f"{tree_id}_printable_tiles.pdf")
         tile_stats = generate_printable_tiles(orig_doc, persons, titles, lines, spec, tiles_out_path)
 
@@ -774,7 +818,7 @@ def main():
             'tile_pdf': f"tiles/{tree_id}_printable_tiles.pdf",
             'svg_file': f"svg/{tree_id}.svg",
             'tiles': tile_stats['tiles'],
-            'build_version': f"v3.1 • {datetime.datetime.now().strftime('%b %d, %Y %H:%M')}"
+            'build_version': f"v3.2 • {datetime.datetime.now().strftime('%b %d, %Y %H:%M')}"
         })
 
     # Save search index
